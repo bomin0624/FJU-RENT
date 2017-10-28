@@ -417,7 +417,7 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
         
         let selectedFilteredRent = list[indexPath.row]
         //let selectedSystemMessage2 = systemMessageTitle[indexPath.row]
-       D//etailTableViewController.= selectedFilteredRent
+       //DetailTableViewController.= selectedFilteredRent
         
         //SystemMessageDetailViewController.systemMessage = selectedSystemMessage
         //SystemMessageDetailViewController.systemMessageTitle = selectedSystemMessage2
