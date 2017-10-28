@@ -7,5 +7,6 @@ pod 'Firebase/Database'
 pod 'Firebase/Storage'
 pod 'GoogleMaps'
 pod 'GooglePlaces'
+pod 'GooglePlacePicker'
 
 end
