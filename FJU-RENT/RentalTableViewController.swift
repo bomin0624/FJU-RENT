@@ -44,7 +44,8 @@ class RentalTableViewController: UITableViewController {
                     let rentAddress = rentObject?["address"] as! String?
                     let rentType = rentObject?["type"] as! String?                    
                     let rentLikeCount = rentObject?["likeCount"] as! Int?
-                    
+                    let timeStamp = rentObject?["timeStamp"] as! Int?
+
                     
                     //選取所有
                     //for img in rentImgStorage {
@@ -64,7 +65,7 @@ class RentalTableViewController: UITableViewController {
                     //let rentImg = imgDict["imgUrl"] as! String
                     //print(rentUniString)
                     
-                    let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!)
+                    let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
                     
                     self.list.append(rentList)
             }
@@ -81,29 +82,32 @@ class RentalTableViewController: UITableViewController {
         return list.count
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "rentalCell", for: indexPath) as! DisplayTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "rentalCell", for: indexPath) as! RentTableViewCell
+       
         let rentList: Model
         rentList = list[indexPath.row]
-        cell.headField.text = rentList.title
-        cell.moneyField.text = rentList.money
-        cell.pingField.text = rentList.pings
-        //cell.displayView.contentMode = .scaleAspectFit
-        if let imgUrl = rentList.imgPath {
-            let url = URL(string: imgUrl)
-            URLSession.shared.dataTask(with: url!, completionHandler: { data, response, error in
+        cell.nameLabel?.text = rentList.title
+        cell.addressLabel?.text = rentList.address
+        cell.moneyLabel?.text = rentList.money
+        
+        
+        
+        //   print("\(rent.title):\(rent.imgPath)")
+        
+        if let rentImageUrl = rentList.imgPath{
+            let url = URL(string: rentImageUrl)
+            URLSession.shared.dataTask(with:url!,completionHandler:{(data,response,error) in
                 if error != nil{
-                    print("")
+                    print(error)
+                    return
                 }
-                print("TabkeView:\(data)")
-                DispatchQueue.main.sync {
-                    if data == nil {
-                        cell.displayView.image = #imageLiteral(resourceName: "favorite(50X50)")
-                    } else {
-                        cell.displayView.image = UIImage(data: data!)
-                    }
-                    
+                
+                DispatchQueue.main.async {
+                    cell.rentImage.image = UIImage(data:data!)
                 }
+                
             }).resume()
+            
         }
         return cell
         

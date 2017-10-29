@@ -44,7 +44,13 @@ class FavoriteTableViewController: UITableViewController {
                
                 //clean the map if no list
                 if snapshot.childrenCount == 0{
+                    let alertController = UIAlertController(title: "暫無收藏項目", message: "", preferredStyle: .alert)
                     
+                    let defaultAction = UIAlertAction(title: "我知道了", style: .cancel, handler: nil)
+                    alertController.addAction(defaultAction)
+                    
+                    self.present(alertController, animated: true, completion: nil)
+                    self.tableView.separatorColor = UIColor.white
                     self.tableView.reloadData()
                     
                 }
@@ -92,14 +98,16 @@ class FavoriteTableViewController: UITableViewController {
                             let rentType = rentObject?["type"] as! String?
                             
                             var rentLikeCount = rentObject?["likeCount"] as! Int?
+                            let timeStamp = rentObject?["timeStamp"] as! Int?
+
                             if rentLikeCount == nil{
                                 rentLikeCount = 0
                             }
-                            let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!)
+                            let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
                             
                             self.list.append(rentList)
                             
-                            
+                            self.tableView.separatorColor = #colorLiteral(red: 0.7233663201, green: 0.7233663201, blue: 0.7233663201, alpha: 1)
                             self.tableView.reloadData()
                             
                             
@@ -130,30 +138,31 @@ class FavoriteTableViewController: UITableViewController {
         return list.count
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "rentalCell", for: indexPath) as! DisplayTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "rentalCell", for: indexPath) as! RentTableViewCell
         let rentList: Model
         rentList = list[indexPath.row]
-        cell.headField.text = rentList.title
-        cell.moneyField.text = rentList.money
-        cell.pingField.text = rentList.pings
-        //cell.displayView.contentMode = .scaleAspectFit
-        if let imgUrl = rentList.imgPath {
-            let url = URL(string: imgUrl)
-            URLSession.shared.dataTask(with: url!, completionHandler: { data, response, error in
+        cell.nameLabel?.text = rentList.title
+        cell.addressLabel?.text = rentList.address
+        cell.moneyLabel?.text = rentList.money
+        
+        
+        
+        //   print("\(rent.title):\(rent.imgPath)")
+        
+        if let rentImageUrl = rentList.imgPath{
+            let url = URL(string: rentImageUrl)
+            URLSession.shared.dataTask(with:url!,completionHandler:{(data,response,error) in
                 if error != nil{
-                    print("")
+                    print(error)
+                    return
                 }
-                DispatchQueue.main.sync {
-                    
-                    //cell.displayView.image = UIImage(data: data!)
-                    if data == nil {
-                        cell.displayView.image = #imageLiteral(resourceName: "favorite(50X50)")
-                    } else {
-                        cell.displayView.image = UIImage(data: data!)
-                    }
-
+                
+                DispatchQueue.main.async {
+                    cell.rentImage.image = UIImage(data:data!)
                 }
+                
             }).resume()
+            
         }
         return cell
         

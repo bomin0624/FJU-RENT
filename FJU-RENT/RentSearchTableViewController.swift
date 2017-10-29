@@ -10,10 +10,12 @@ import UIKit
 import Firebase
 import FirebaseDatabase
 
-class RentSearchTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate ,UISearchResultsUpdating,UIViewControllerPreviewingDelegate{
+class RentSearchTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate ,UISearchResultsUpdating,UIViewControllerPreviewingDelegate, UIPickerViewDelegate, UIPickerViewDataSource{
     
     
     @IBOutlet var searchTableView: UITableView!
+    @IBOutlet weak var sortPicker: UIPickerView!
+    @IBOutlet var sortView: UIView!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var searchFooter: SearchFooter!
     var searchController = UISearchController(searchResultsController: nil)
@@ -25,12 +27,14 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
     
     //receive & listen
     var searchText = ""
-    
+   // var condiction = ""
     
     var filteredRent = [Model]()
     
     //replace list into dict
     var detailDict = [Int: String]()
+    
+    var sortList = ["默認排序","依最新上架排序","依價錢高到低","依價錢低到高"]
     
     override func viewDidLoad() {
         
@@ -108,13 +112,21 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
                                 let rentType = rentObject?["type"] as! String?
                                 
                                 var rentLikeCount = rentObject?["likeCount"] as! Int?
-                                
+                                let timeStamp = rentObject?["timeStamp"] as! Int?
+
                                 if rentLikeCount == nil{
                                     rentLikeCount = 0
                                 }
-                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!)
+                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
                                 
                                 self.list.append(rentList)
+                             
+//                                if self.condiction == "依最新上架排序"{
+//                                    self.list = self.list.sorted(by: {$0.timeStamp > $1.timeStamp})
+//                                    self.tableView.reloadData()
+//                                    
+//                                }
+                            self.tableView.reloadData()
                             }
                             //self.tableView.reloadData()
                             DispatchQueue.main.async {
@@ -134,6 +146,7 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
         })
         
     }
+    
     
     //搜尋前進行過濾
     //get rent type
@@ -162,6 +175,7 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
         
         
     }
+
     
     //get rent money
     func getMoney()-> Array<Int> {
@@ -378,6 +392,39 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
         return cell
     }
     
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        return sortList.count
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        return sortList[row]
+    }
+    
+    func showPickerView(){
+        self.view.addSubview(self.sortView)
+        self.searchTableView?.isScrollEnabled = false
+        self.sortView.frame.origin.y = self.view.frame.height
+        self.sortView.bounds = CGRect(x: 0, y: self.sortView.bounds.origin.y, width: UIScreen.main.bounds.width, height: self.sortView.bounds.height)
+        self.sortView.frame.origin.x = 0
+        sortView.layer.cornerRadius = 10
+        UIView.animate(withDuration: 0.5){
+            self.sortView.frame.origin.y = self.view.frame.height-self.sortView.frame.height
+            self.view.layoutIfNeeded()
+        }
+    }
+
+    @IBAction func sortDone(_ sender: Any) {
+        self.sortView.removeFromSuperview()
+        self.searchTableView?.isScrollEnabled = true
+    }
+    
+    @IBAction func sort(_ sender: Any) {
+        self.showPickerView()
+    }
     //prepare for segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
         if segue.identifier == "detail" {
@@ -400,6 +447,13 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
             }
         }
     }
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+//        areaMessageField.text = list[row]
+//        if areaMessageField.text == list[0]{
+//            areaMessageField.text = ""
+//        }
+    }
+    
     // MARK: - Peek and Pop 3d touch
     func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
         
@@ -415,14 +469,17 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
             return nil
         }
         
-        let selectedFilteredRent = list[indexPath.row]
+        //let selectedFilteredRent = [indexPath.row]
+        //DetailTableViewController = selectedFilteredRent
+        
+        //DetailTableViewController
+        
         //let selectedSystemMessage2 = systemMessageTitle[indexPath.row]
        //DetailTableViewController.= selectedFilteredRent
         
         //SystemMessageDetailViewController.systemMessage = selectedSystemMessage
         //SystemMessageDetailViewController.systemMessageTitle = selectedSystemMessage2
        //DetailTableViewController.preferredContentSize = CGSize(width: 0.0, height: 450.0)
-        
         previewingContext.sourceRect = cell.frame
         
         return SystemMessageDetailViewController

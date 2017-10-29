@@ -51,10 +51,12 @@ class RankingTableViewController: UITableViewController {
                                 let rentType = rentObject?["type"] as! String?
                                 
                                 var rentLikeCount = rentObject?["likeCount"] as! Int?
+                                let timeStamp = rentObject?["timeStamp"] as! Int?
+
                                 if rentLikeCount == nil{
                                     rentLikeCount = 0
                                 }
-                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!)
+                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
                                 
                             
                                 self.list.append(rentList) //存取陣列

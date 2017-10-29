@@ -14,7 +14,9 @@ import FBSDKShareKit
 import FBSDKLoginKit
 
 class DetailTableViewController: UITableViewController {
-
+    
+    var list = [Model]()
+    @IBOutlet weak var favoriteBarButton: UIBarButtonItem!
     @IBOutlet weak var detailImg: UIImageView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var areaLabel: UILabel!
@@ -71,7 +73,7 @@ class DetailTableViewController: UITableViewController {
                 let detailType = detailObject?["type"] as! String?
                 let detailTrans = detailObject?["trans"] as! String?
                 let detailDetail = detailObject?["detail"] as! String?
-                let detailDeposit = detailObject?["deposit"] as! String?                
+                let detailDeposit = detailObject?["deposit"] as! String?
                 var rentLikeCount = detailObject?["likeCount"] as! Int?
                 if rentLikeCount == nil{
                     rentLikeCount = 0
@@ -126,6 +128,16 @@ class DetailTableViewController: UITableViewController {
                     self.likeImageView.image = UIImage(named: "like")
                 }
             })
+        //favorite image
+        let favoriteRef = Database.database().reference().child("currentUser").child(currentUid!).child(id).child("favorite")
+        favoriteRef.observe(DataEventType.value, with: {(snapshot) in
+            if let likeOrNot = snapshot.value as? NSNull{
+                print(likeOrNot)
+                self.favoriteBarButton.image = UIImage(named: "favorite(50X50)")
+            }else{
+                self.favoriteBarButton.image = UIImage(named: "filledheart")
+            }
+        })
 //        在圖片上增加增加likeTapped()的動作
         let tap = UITapGestureRecognizer(target: self, action: #selector(likeTapped(_:)))
         tap.numberOfTapsRequired = 1
@@ -175,8 +187,11 @@ class DetailTableViewController: UITableViewController {
         let favorites = ["userId": currentUser, "id" : id, "uid": uid]
         
         rentalData.child(id).setValue(favorites)
+        // add boolean to check
+        let favoriteCheckRef = Database.database().reference().child("currentUser").child(currentUser!).child(id)
+        favoriteCheckRef.child("favorite").setValue(true)
     }
-//分享功能
+    //分享功能
     @IBAction func sharePress(_ sender: Any) {
         let activityVC = UIActivityViewController(activityItems:["來自[FJU-RENT]"], applicationActivities: nil)
         activityVC.popoverPresentationController?.sourceView = self.view
@@ -202,6 +217,7 @@ class DetailTableViewController: UITableViewController {
             destination.uid = uid
            // destination.imgString = uniqueString
            // destination.imgUrl = imgUrl
+            destination.likeCount = likeCount
         }
     }
     

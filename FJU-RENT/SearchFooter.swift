@@ -37,7 +37,6 @@ class SearchFooter: UIView {
     }
     
     //MARK: - Animation
-    
     fileprivate func hideFooter() {
         UIView.animate(withDuration: 0.7) {[unowned self] in
             self.alpha = 0.0

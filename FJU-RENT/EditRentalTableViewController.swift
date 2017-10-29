@@ -43,6 +43,8 @@ class EditRentalTableViewController: UITableViewController, UIPickerViewDataSour
     var imgKeyList = [String]()
     var imgNameList = [String]()
     
+    var likeCount = 0
+    
     //set imge status
     enum Status {
         case noImge //未上傳圖片

@@ -24,9 +24,9 @@ class Model {
     var genre: String? //type
     var area: String?
     var likeCount = Int()
-    
+    var timeStamp = Int()
     //add
-    init(title: String?, money: String?, pings: String?, imgPath: String?, id: String?, uid: String?, uniString: String?,address: String?, genre :String? , area: String?, likeCount: Int){
+    init(title: String?, money: String?, pings: String?, imgPath: String?, id: String?, uid: String?, uniString: String?,address: String?, genre :String? , area: String?, likeCount: Int, timeStamp: Int){
         self.title = title
         self.money = money
         self.pings = pings
@@ -34,7 +34,7 @@ class Model {
         self.id = id
         self.uid = uid
         self.uniString = uniString
-        
+        self.timeStamp = timeStamp
         //add
         self.address = address
         self.area = area

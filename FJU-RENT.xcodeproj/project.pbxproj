@@ -19,6 +19,7 @@
 		2434A1B21F9CBEA90071C39E /* LatestTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2434A1B11F9CBEA90071C39E /* LatestTableViewController.swift */; };
 		2434A1B61F9EC3290071C39E /* HomeTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2434A1B51F9EC3290071C39E /* HomeTableViewCell.swift */; };
 		2434A1B81F9EC5390071C39E /* GreatValRentTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2434A1B71F9EC5390071C39E /* GreatValRentTableViewController.swift */; };
+		2434A1BA1FA602A00071C39E /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2434A1B91FA602A00071C39E /* HomeViewController.swift */; };
 		244D016A1F46E9B400D726D8 /* RentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244D01691F46E9B400D726D8 /* RentTableViewCell.swift */; };
 		244D01701F49296100D726D8 /* Rents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244D016F1F49296100D726D8 /* Rents.swift */; };
 		245D77651F385DDB0022D84C /* PersonalCenterTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 245D77641F385DDB0022D84C /* PersonalCenterTableViewController.swift */; };
@@ -26,6 +27,7 @@
 		246FC9681F288D4E00F44CC8 /* TenantSignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246FC9671F288D4E00F44CC8 /* TenantSignupViewController.swift */; };
 		246FC96A1F288D8400F44CC8 /* LandlordSignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246FC9691F288D8400F44CC8 /* LandlordSignupViewController.swift */; };
 		248D498C1F0C4453001FC144 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 248D498B1F0C4453001FC144 /* LoginViewController.swift */; };
+		24917FE01FA60EAD0007A851 /* Amarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24917FDF1FA60EAD0007A851 /* Amarker.swift */; };
 		24A3720F1F8482C40052D02B /* Bolts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24A3720E1F8482C40052D02B /* Bolts.framework */; };
 		24A372111F8482EA0052D02B /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24A372101F8482EA0052D02B /* FBSDKLoginKit.framework */; };
 		24A372131F8482F60052D02B /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24A372121F8482F60052D02B /* FBSDKShareKit.framework */; };
@@ -76,6 +78,7 @@
 		2434A1B11F9CBEA90071C39E /* LatestTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LatestTableViewController.swift; sourceTree = "<group>"; };
 		2434A1B51F9EC3290071C39E /* HomeTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeTableViewCell.swift; sourceTree = "<group>"; };
 		2434A1B71F9EC5390071C39E /* GreatValRentTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GreatValRentTableViewController.swift; sourceTree = "<group>"; };
+		2434A1B91FA602A00071C39E /* HomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		244D01691F46E9B400D726D8 /* RentTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RentTableViewCell.swift; sourceTree = "<group>"; };
 		244D016F1F49296100D726D8 /* Rents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rents.swift; sourceTree = "<group>"; };
 		245D77641F385DDB0022D84C /* PersonalCenterTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonalCenterTableViewController.swift; sourceTree = "<group>"; };
@@ -83,6 +86,7 @@
 		246FC9671F288D4E00F44CC8 /* TenantSignupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TenantSignupViewController.swift; sourceTree = "<group>"; };
 		246FC9691F288D8400F44CC8 /* LandlordSignupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LandlordSignupViewController.swift; sourceTree = "<group>"; };
 		248D498B1F0C4453001FC144 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
+		24917FDF1FA60EAD0007A851 /* Amarker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Amarker.swift; sourceTree = "<group>"; };
 		24A3720E1F8482C40052D02B /* Bolts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Bolts.framework; path = ../../Documents/FacebookSDK/Bolts.framework; sourceTree = "<group>"; };
 		24A372101F8482EA0052D02B /* FBSDKLoginKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKLoginKit.framework; path = ../../Documents/FacebookSDK/FBSDKLoginKit.framework; sourceTree = "<group>"; };
 		24A372121F8482F60052D02B /* FBSDKShareKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKShareKit.framework; path = ../../Documents/FacebookSDK/FBSDKShareKit.framework; sourceTree = "<group>"; };
@@ -277,6 +281,7 @@
 				240D42EA1F63FC27002C4BBE /* SystemMessage&PC */,
 				24C51FC91F0ABC3A00EA28F4 /* ViewController.swift */,
 				2434A1B71F9EC5390071C39E /* GreatValRentTableViewController.swift */,
+				2434A1B91FA602A00071C39E /* HomeViewController.swift */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -291,6 +296,7 @@
 				240D42E01F63F631002C4BBE /* Section.swift */,
 				7AD7191A1F6FC4B900AB757A /* Reports.swift */,
 				7A056DF71F6BC2620070B8B9 /* Favorite.swift */,
+				24917FDF1FA60EAD0007A851 /* Amarker.swift */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -447,6 +453,7 @@
 				2434A1AA1F9B2CAC0071C39E /* RankingTableViewCell.swift in Sources */,
 				248D498C1F0C4453001FC144 /* LoginViewController.swift in Sources */,
 				246FC96A1F288D8400F44CC8 /* LandlordSignupViewController.swift in Sources */,
+				2434A1BA1FA602A00071C39E /* HomeViewController.swift in Sources */,
 				246FC9681F288D4E00F44CC8 /* TenantSignupViewController.swift in Sources */,
 				245D77651F385DDB0022D84C /* PersonalCenterTableViewController.swift in Sources */,
 				7AD7191B1F6FC4B900AB757A /* Reports.swift in Sources */,
@@ -464,6 +471,7 @@
 				7AA2BD631F823FF9007D49BE /* MutiMarkerViewController.swift in Sources */,
 				24C51FCA1F0ABC3A00EA28F4 /* ViewController.swift in Sources */,
 				DD15F1611F4D682900FD92A7 /* DisplayTableViewCell.swift in Sources */,
+				24917FE01FA60EAD0007A851 /* Amarker.swift in Sources */,
 				DD15F15F1F4D67B200FD92A7 /* RentalTableViewController.swift in Sources */,
 				2434A1AC1F9CBDAD0071C39E /* CompareTableViewCell.swift in Sources */,
 				7AD719111F6D358A00AB757A /* SearchFooter.swift in Sources */,
