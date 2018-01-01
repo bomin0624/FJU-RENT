@@ -19,8 +19,8 @@ class LoginViewController: UIViewController {
         super.viewDidLoad()
         Auth.auth().addStateDidChangeListener(){auth, user in
   
+            //MARK: -  User is signed in
             if let user = user {
-                // User is signed in.
                 if (user.isEmailVerified||(FBSDKAccessToken.current()) != nil) {
                     let vc = UIStoryboard(name : "Main", bundle: nil).instantiateViewController(withIdentifier: "bomin")
                     self.present(vc, animated: true,completion: nil)
@@ -56,17 +56,16 @@ class LoginViewController: UIViewController {
         }
         
     }
-    // facebook login & put data in firebase
+    //MARK: - Facebook Login & Put Data in Firebase
     @IBAction func facebookLogin(_ sender: Any) {
         let fbLoginManager = FBSDKLoginManager()
-        print("logged in")
         
         fbLoginManager.logIn(withReadPermissions: ["public_profile", "email"], from: self) { (result, error) in
             if let error = error {
                 print("Failed to login: \(error.localizedDescription)")
                 return
             }
-            //拿到fb授權
+            //MARK: - Get the FB AccessToken
             guard let accessToken = FBSDKAccessToken.current()
                 else {
                 print("Failed to get access token")
@@ -75,7 +74,7 @@ class LoginViewController: UIViewController {
             
             let credential = FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
             
-            // Perform login by calling Firebase APIs
+            //MARK: -  Perform login by calling Firebase APIs
             Auth.auth().signIn(with: credential, completion: { (user, error) in
                 if let error = error {
                     print("Login error: \(error.localizedDescription)")
@@ -86,19 +85,15 @@ class LoginViewController: UIViewController {
                     return
                 }
                 var ref = Database.database().reference()
-                // guard for user id
                 guard let uid = user?.uid else {
                     return
                 }
-                //show the email name id
+                //MARK: - Show The Email name id
                 FBSDKGraphRequest(graphPath: "/me", parameters: ["fields": "id,name,email"]).start(completionHandler: { (connection, result,error) in
                     if error != nil {
                         print("failed to start graph request:",error)
-                        //return
                     }else{
-                        //print("找到用戶：\(result)")
                         
-                        //let data = result as! [String : Any]
                         let userInfo :[String : Any] = ["uid" : user!.uid,"type" : "F"]
                         ref.child("Members").child(uid).setValue(userInfo) //add type and uid into Members
                         let values: [String:Any] = result as! [String : Any]
@@ -107,17 +102,14 @@ class LoginViewController: UIViewController {
                         // create a child reference - uid will let us wrap each users data in a unique user id for later reference
                         let usersReference = ref.child("Members").child(uid)
                         usersReference.updateChildValues(values){ (err, ref) -> Void in
-                            // if there's an error in saving to our firebase database
                             if err != nil {
                                 print(err)
                                 return
                             }
-                            // no error, so it means we've saved the user into our firebase database successfully
                             print("Save the user successfully into Firebase database")
                         }
                     }
                 })
-                // Present the main view
                 if let viewController = self.storyboard?.instantiateViewController(withIdentifier: "bomin") {
                     UIApplication.shared.keyWindow?.rootViewController = viewController
                     self.dismiss(animated: true, completion: nil)
@@ -128,7 +120,6 @@ class LoginViewController: UIViewController {
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
 }

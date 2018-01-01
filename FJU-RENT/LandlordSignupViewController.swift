@@ -26,7 +26,6 @@ class LandlordSignupViewController: UIViewController {
         super.viewDidLoad()
         
         ref = Database.database().reference()
-        // Do any additional setup after loading the view.
     }
     
     @IBAction func nextPressed(_ sender: Any) {
@@ -60,13 +59,11 @@ class LandlordSignupViewController: UIViewController {
                         
                     }
            
-                    
-                    // using the credentials above, sign in to firebase to create a user session
                     let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
                     changeRequest?.displayName = self.nameField.text!
                     changeRequest?.commitChanges(completion: nil)
                     
-                    let userInfo :[String : Any] = ["uid" : user.uid,"full name" : self.nameField.text!,"email" : self.emailField.text!,"type" : "L"]
+                    let userInfo :[String : Any] = ["uid" : user.uid,"name" : self.nameField.text!,"email" : self.emailField.text!,"type" : "L"]
                     
                     self.ref.child("Members").child(user.uid).setValue(userInfo)
                     

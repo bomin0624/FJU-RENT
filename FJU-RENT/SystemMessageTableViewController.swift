@@ -31,18 +31,15 @@ class SystemMessageTableViewController: UITableViewController,UIViewControllerPr
         ref = Database.database().reference()
         
         refHandle = ref?.child("systemMessage").observe(.childAdded, with: { (snapshot) in
-            
-            // take the value from the snap shop and add it to the postData array
+        
             let title = snapshot.childSnapshot(forPath: "title").value as? String
             let message = snapshot.childSnapshot(forPath: "message").value as? String
-            //let message = snapshot.childSnapshot(forPath: ).value as? String
             if let actualTitle = title  {
                 if let actualMessage = message {
-                    // append the data to our postData array
+                
                     self.systemMessageTitle.append(actualTitle)
                     self.systemMessage.append(actualMessage)
-                    
-                    //reload the table view
+
                     self.tableView.reloadData()
                 }
             }
@@ -54,18 +51,16 @@ class SystemMessageTableViewController: UITableViewController,UIViewControllerPr
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     // MARK: - Table view data source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
         return 1
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
+
         return systemMessageTitle.count
     }
     
@@ -75,7 +70,6 @@ class SystemMessageTableViewController: UITableViewController,UIViewControllerPr
         let cellIdentifier = "Cell"
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! SystemMessageTableViewCell
         
-        //Configure the cell...
         cell.titleLabel.text = systemMessageTitle[indexPath.row]
         
         

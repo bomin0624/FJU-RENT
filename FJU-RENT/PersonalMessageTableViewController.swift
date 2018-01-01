@@ -19,25 +19,37 @@ class PersonalMessageTableViewController: UITableViewController {
   
     var reports = [Reports]()
     
+    var name = ""
+    var nameType = ""
+    var reporter = ""
+    
+    func setName(name:String){
+        self.name = name
+    }
+    func setNameType(nameType:String){
+        self.nameType = nameType
+    }
+    func setReporterName(name:String){
+        self.reporter = name
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+   
+
+        
         ref = Database.database().reference()
         let currentUser = Auth.auth().currentUser?.uid
-        print("currentUser:\(currentUser)")
-        if currentUser == managerId{ //管理員
+        if currentUser == managerId{
+            
             print("管理員")
+            
             ref.child("Reports").observe(DataEventType.value, with: { (snapshot) in
-                
-                
-                //.observeSingleEvent(of: .value, with: { (snapshot) in
-                
-                //self.reports.removeAll()
-                
+
                 for child in snapshot.children.allObjects as! [DataSnapshot]{
                     
-                    print(child)
+                    //print(child)
                     
                     if snapshot.childrenCount > 0{
                         let childObject = child.value as! NSDictionary
@@ -45,7 +57,7 @@ class PersonalMessageTableViewController: UITableViewController {
                         
                         for report in reports{
                             
-                            print(report)
+                            //print(report)
                             
                             let existPostId = report["postId"] as! String
                             let existReporter = report["reporter"] as! String
@@ -53,24 +65,86 @@ class PersonalMessageTableViewController: UITableViewController {
                             let existUid = report["uid"] as! String
                             let existReportId = report["reportId"] as! String
                             let existReportReason = report["reportReason"] as! String
-                            let data = Reports(id : existId, uid : existUid, postId : existPostId, reporter : existReporter, reportId : existReportId, reportReason: existReportReason)
                             
+                            
+                            let data = Reports(id : existId, uid : existUid, postId : existPostId, reporter : existReporter, reportId : existReportId, reportReason: existReportReason, uidName: self.name, reporterName: self.reporter, uidNameType: self.nameType)
+                                
                             self.reports.append(data)
+
                             
-                            //reload the table view
+                            
                             self.tableView.reloadData()
                             
                         }
                         
+                        
                     }
+                  
+                }
+                
+              
+                for report in self.reports{
+                    let reporter = report.reporter as! String
+                    self.ref.child("Members").child(reporter).observeSingleEvent(of:.value,with: {(snapshot) in
+                        
+                        let dataDict = snapshot.value as! [String: Any]
+                        let user  = dataDict["email"] as! String
+                        let name  = dataDict["name"] as! String
+                        let type  = dataDict["type"] as? String
+                        
+                        report.reporterName = name
+                        
+                        self.tableView.reloadData()
+                        
+                        
+                        
+                    })
+                    
+               
+                    
+                }
+                for report in self.reports{
+                    let uid = report.uid as! String
+                    self.ref.child("Members").child(uid).observeSingleEvent(of:.value,with: {(snapshot) in
+                        
+                        let dataDict = snapshot.value as! [String: Any]
+                        let user  = dataDict["email"] as! String
+                        let name  = dataDict["name"] as! String
+                        let type  = dataDict["type"] as? String
+                        var nameType : String?
+                        
+                        if type == "T"{
+                            nameType = "租客"
+                        }else if type == "L"{
+                            nameType = "房東"
+                        }else {
+                            nameType = "FaceBook用戶"
+                        }
+                        
+                        report.uidName = name
+                        report.uidNameType = nameType
+                        
+                        self.tableView.reloadData()
+                        
+                    })
+                    
+
                 }
                 
             })
             
-        } else { //一般用戶
+            
+            
+            
+            
+
+            
+
+            
+        } else {
+            
+            //一般用戶
             refHandle = ref?.child("Reports").child(currentUser!).observe(.childAdded, with: { (snapshot) in
-                
-                // take the value from the snap shop and add it to the postData array
                 
                 let id = snapshot.childSnapshot(forPath: "id").value as? String
                 let postId = snapshot.childSnapshot(forPath: "postId").value as? String
@@ -79,19 +153,39 @@ class PersonalMessageTableViewController: UITableViewController {
                 let reporter = snapshot.childSnapshot(forPath: "reporter").value as? String
                 let uid = snapshot.childSnapshot(forPath: "uid").value as? String
                 
-                let data = Reports(id : id, uid : uid, postId : postId, reporter : reporter, reportId : reportId, reportReason: reportReason)
+                let data = Reports(id : id, uid : uid, postId : postId, reporter : reporter, reportId : reportId, reportReason: reportReason, uidName: "", reporterName: "", uidNameType: "")
                 
                 self.reports.append(data)
-                
-                
-                
-                //reload the table view
                 self.tableView.reloadData()
                 
                 
                 
                 
             })
+            
+            ref = Database.database().reference()
+            let userID:String = (Auth.auth().currentUser?.uid)!
+            ref.child("Members").child(userID).observeSingleEvent(of:.value,with: {(snapshot) in
+                
+                let dataDict = snapshot.value as! [String: Any]
+                let user  = dataDict["email"] as! String
+                let name  = dataDict["name"] as! String
+                let type  = dataDict["type"] as? String
+                var nameType : String?
+                
+                if type == "T"{
+                    nameType = "租客"
+                }else if type == "L"{
+                    nameType = "房東"
+                }else {
+                    nameType = "FaceBook用戶"
+                }
+                self.setName(name: name)
+                self.setNameType(nameType: nameType!)
+                self.tableView.reloadData()
+                
+            })
+            
         }
         
 
@@ -99,18 +193,15 @@ class PersonalMessageTableViewController: UITableViewController {
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
 
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
         return 1
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
         return reports.count
     }
 
@@ -119,10 +210,29 @@ class PersonalMessageTableViewController: UITableViewController {
         let cellIdentifier = "Cell"
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! PersonalMessageTableViewCell
         
+        
+        let currentUser = Auth.auth().currentUser?.uid
+        if currentUser == managerId{
+            
+            let reportReason = reports[indexPath.row].reportReason as! String
+            let nameType = reports[indexPath.row].uidNameType as! String
+            let name = reports[indexPath.row].uidName as! String
+            let reporter = reports[indexPath.row].reporterName as! String
+            //let nameType = nameTypeList.count
+            //[indexPath.row] as! String
+            //let name = nameList.count
+            //[indexPath.row] as String!
+            //let reporter = reporterList.count
+            //[indexPath.row] as String!
+            
+            cell.reportReasonTextView?.text = "\(nameType):\(name)的所發表的言論被\(reporter)舉報為：\(reportReason)"
+        }else{
+       
+        
         //Configure the cell...
         let reportReason = reports[indexPath.row].reportReason as! String
-        cell.reportReasonTextView?.text = "尊敬的用戶您好！\n您所發表的言論被舉報為：\(reportReason)，請及時刪除，否則我們將予以凍結賬戶的處理！"
-        
+        cell.reportReasonTextView?.text = "尊敬的\(nameType):\(name)您好！\n您所發表的言論被舉報為：\(reportReason)，請及時刪除，否則我們將予以凍結賬戶的處理！\nFJU RENT團隊"
+        }
         return cell
     }
     

@@ -15,8 +15,6 @@ class ResetPwdViewController: UIViewController{
     @IBOutlet weak var nextBtn: UIButton!
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Do any additional setup after loading the view.
     }
     @IBAction func resetPress(_ sender: Any){
         if self.emailField.text == "" {

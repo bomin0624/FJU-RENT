@@ -9,15 +9,29 @@
 import UIKit
 import Firebase
 
-class LatestTableViewController: UITableViewController {
+class LatestTableViewController: UITableViewController,UIViewControllerPreviewingDelegate {
     var list = [Model]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //MARK: - 3d touch
+        if(traitCollection.forceTouchCapability == .available){
+            registerForPreviewing(with: self as! UIViewControllerPreviewingDelegate, sourceView: view)
+        }
+        self.LoadFromDatbase()
+        self.refreshControl = UIRefreshControl()
+        self.refreshControl?.attributedTitle = NSAttributedString(string: "下拉以重新整理...")
+        self.refreshControl?.addTarget(self, action: #selector(refreshData(_:)), for: UIControlEvents.valueChanged)
+        self.tableView.addSubview(refreshControl!)
+        
+    }
+    func LoadFromDatbase(){
+        
         let user = Auth.auth().currentUser
+        
         if let user = user{
             let uid = user.uid
-            
             Database.database().reference().child("location").observe(.childAdded, with: { (snapshot) in
                 
                 
@@ -33,7 +47,7 @@ class LatestTableViewController: UITableViewController {
                         let imgDict = rentImgStorage?.allValues[0] as! [String : Any]
                         let rentUniString = imgDict["imgName"] as! String
                         let rentImg = imgDict["imgUrl"] as! String
-
+                        
                         var rentLikeCount = rentObject?["likeCount"] as! Int?
                         //add
                         let rentArea = rentObject?["area"] as! String?
@@ -43,7 +57,9 @@ class LatestTableViewController: UITableViewController {
                         if rentLikeCount == nil{
                             rentLikeCount = 0
                         }
-                        let  rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
+                        let latitude = rentObject?["latitude"] as! Double?
+                        let longitude = rentObject?["longitude"] as! Double?
+                        let  rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!, latitude: latitude!, longitude: longitude!)
                         
                         self.list.append(rentList)
                         self.list = self.list.sorted(by: {$0.timeStamp > $1.timeStamp})
@@ -55,9 +71,15 @@ class LatestTableViewController: UITableViewController {
                     
                 }
             })
-            
         }
     }
+    func refreshData(_ refreshControl: UIRefreshControl){
+        self.list.removeAll()
+        self.LoadFromDatbase()
+        self.tableView.reloadData()
+        self.refreshControl?.endRefreshing()
+    }
+
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return list.count
@@ -69,10 +91,6 @@ class LatestTableViewController: UITableViewController {
         cell.nameLabel?.text = rentList.title
         cell.addressLabel?.text = rentList.address
         cell.moneyLabel?.text = rentList.money
-        
-        
-        
-     //   print("\(rent.title):\(rent.imgPath)")
         
         if let rentImageUrl = rentList.imgPath{
             let url = URL(string: rentImageUrl)
@@ -94,19 +112,50 @@ class LatestTableViewController: UITableViewController {
     }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
         if segue.identifier == "detail" {
+           
             if let indexPath = tableView.indexPathForSelectedRow{
                 let rentList: Model
                 rentList = list[indexPath.row]
                 let destinationController = segue.destination as! DetailTableViewController
                 destinationController.id = rentList.id!
                 destinationController.uid = rentList.uid!
-                //destinationController.uniqueString = rentList.uniString!
-                //destinationController.imgUrl = rentList.imgPath!
             }
         }
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
+    
+    
+    // MARK: - Peek and Pop 3d touch
+    
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        
+        guard let indexPath = tableView.indexPathForRow(at: location) else {
+            return nil
+        }
+        
+        guard let cell = tableView.cellForRow(at: indexPath) else {
+            return nil
+        }
+        
+        guard let DetailTableViewController = storyboard?.instantiateViewController(withIdentifier: "DetailTableViewController") as? DetailTableViewController else {
+            return nil
+        }
+        
+        let selectedFilteredRent = list[indexPath.row]
+        
+        DetailTableViewController.id = selectedFilteredRent.id!
+        DetailTableViewController.uid = selectedFilteredRent.uid!
+        DetailTableViewController.preferredContentSize = CGSize(width: 0.0, height: 450.0)
+        previewingContext.sourceRect = cell.frame
+        
+        return DetailTableViewController
+    }
+    
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit:
+        UIViewController) {
+        show(viewControllerToCommit, sender: self)
+    }
+    
 }

@@ -28,7 +28,7 @@ class PersonalCenterTableViewController: UITableViewController {
             
             let dataDict = snapshot.value as! [String: Any]
             let user  = dataDict["email"] as! String
-            let name  = dataDict["name"] as! String  // full name 改成 name
+            let name  = dataDict["name"] as! String 
             let type  = dataDict["type"] as? String
             self.name.text = name
             self.user.text = user

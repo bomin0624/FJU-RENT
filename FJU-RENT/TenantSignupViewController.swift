@@ -24,9 +24,7 @@ class TenantSignupViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         ref = Database.database().reference()
-        // Do any additional setup after loading the view.
     }
     
     @IBAction func nextPressed(_ sender: Any) {
@@ -64,7 +62,7 @@ class TenantSignupViewController: UIViewController {
                     changeRequest?.displayName = self.nameField.text!
                     changeRequest?.commitChanges(completion: nil)
                     
-                    let userInfo :[String : Any] = ["uid" : user.uid,"full name" : self.nameField.text!,"email" : self.emailField.text!,"type" : "T"]
+                    let userInfo :[String : Any] = ["uid" : user.uid,"name" : self.nameField.text!,"email" : self.emailField.text!,"type" : "T"]
                     
                     self.ref.child("Members").child(user.uid).setValue(userInfo)
                     

@@ -9,15 +9,31 @@
 import UIKit
 import Firebase
 
-class RankingTableViewController: UITableViewController {
+class RankingTableViewController: UITableViewController,UIViewControllerPreviewingDelegate {
     
     var list = [Model]()
-    var rankingList = [Int]()   //排行榜
+    var rankingList = [Int]()
     var keyList = [String]()
 
     override func viewDidLoad() {
        
+        //MARK: - 3d touch
+        if(traitCollection.forceTouchCapability == .available){
+            registerForPreviewing(with: self as! UIViewControllerPreviewingDelegate, sourceView: view)
+        }
+        
         super.viewDidLoad()
+        self.LoadFromDatabase()
+        self.refreshControl = UIRefreshControl()
+        self.refreshControl?.attributedTitle = NSAttributedString(string: "下拉以重新整理...")
+        self.refreshControl?.addTarget(self, action: #selector(refreshData(_:)), for: UIControlEvents.valueChanged)
+        self.tableView.addSubview(refreshControl!)
+    }
+    
+    
+    
+    
+    func LoadFromDatabase(){
         
         Database.database().reference().child("location").observeSingleEvent(of: .value, with: { (snapshot) in
             
@@ -52,13 +68,16 @@ class RankingTableViewController: UITableViewController {
                                 
                                 var rentLikeCount = rentObject?["likeCount"] as! Int?
                                 let timeStamp = rentObject?["timeStamp"] as! Int?
-
+                                
                                 if rentLikeCount == nil{
                                     rentLikeCount = 0
                                 }
-                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
+                                let latitude = rentObject?["latitude"] as! Double?
+                                let longitude = rentObject?["longitude"] as! Double?
                                 
-                            
+                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!, latitude: latitude!, longitude: longitude!)
+                                
+                                
                                 self.list.append(rentList) //存取陣列
                                 self.list = self.list.sorted(by: { $0.likeCount > $1.likeCount })
                             }
@@ -69,7 +88,7 @@ class RankingTableViewController: UITableViewController {
                             if key == lastKeyValue {
                                 DispatchQueue.main.async {
                                     self.tableView.reloadData()
-                                   
+                                    
                                 }
                             }
                         }
@@ -78,26 +97,30 @@ class RankingTableViewController: UITableViewController {
             }
             
         })
-}
+    }
+    
+    func refreshData(_ refreshControl: UIRefreshControl){
+        self.keyList.removeAll()
+        self.rankingList.removeAll()
+        self.list.removeAll()
+        self.LoadFromDatabase()
+        self.tableView.reloadData()
+        self.refreshControl?.endRefreshing()
+    }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! RankingTableViewCell
         
         let rent: Model
-        //let rent = rentList[indexPath.row]
         rent = list[indexPath.row]
         cell.nameLabel?.text = rent.title
         cell.addressLabel?.text = rent.address
         cell.moneyLabel?.text = rent.money
-        cell.rank.text = "\(indexPath.row+1)" //排行數字
+        cell.rank.text = "\(indexPath.row+1)"
         
         
         
-        
-        
-        //cell.imageView?.image = UIImage(named: "yo")
-
         
         if let rentImageUrl = rent.imgPath{
             let url = URL(string: rentImageUrl)
@@ -110,7 +133,6 @@ class RankingTableViewController: UITableViewController {
                 DispatchQueue.main.async {
                     let sortedArray = self.rankingList.sorted(by: >)
                     cell.rentImage.image = UIImage(data:data!)
-                    //.imageView?.image = UIImage(data:data!)
                 }
                 
             }).resume()
@@ -118,7 +140,8 @@ class RankingTableViewController: UITableViewController {
         }
         return cell
     }
-    //prepare for segue
+    
+    //MARK: - Prepare for segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
         if segue.identifier == "rankdetail" {
             if let indexPath = tableView.indexPathForSelectedRow{
@@ -134,7 +157,6 @@ class RankingTableViewController: UITableViewController {
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -143,11 +165,41 @@ class RankingTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     
-    if list.count > 10{
-        return 10
-    }else{
-        return list.count
+        if list.count > 10 {
+            return 10
+        }else {
+            return list.count
+            }
+        }
+    
+    // MARK: - Peek and Pop 3d touch
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        
+        guard let indexPath = tableView.indexPathForRow(at: location) else {
+            return nil
+        }
+        
+        guard let cell = tableView.cellForRow(at: indexPath) else {
+            return nil
+        }
+        
+        guard let DetailTableViewController = storyboard?.instantiateViewController(withIdentifier: "DetailTableViewController") as? DetailTableViewController else {
+            return nil
+        }
+        
+        let selectedFilteredRent = list[indexPath.row]
+        
+        DetailTableViewController.id = selectedFilteredRent.id!
+        DetailTableViewController.uid = selectedFilteredRent.uid!
+        DetailTableViewController.preferredContentSize = CGSize(width: 0.0, height: 450.0)
+        previewingContext.sourceRect = cell.frame
+        
+        return DetailTableViewController
     }
+    
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+        show(viewControllerToCommit, sender: self)
     }
+    
 
 }

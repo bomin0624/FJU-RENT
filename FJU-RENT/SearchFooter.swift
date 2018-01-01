@@ -68,6 +68,6 @@ extension SearchFooter {
             label.text = "找到\(filteredItemCount)筆資料,總共\(totalItemCount)筆資料"
             showFooter()
         }
-    }   //顯示搜尋結果
+    }   
     
 }

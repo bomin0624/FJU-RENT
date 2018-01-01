@@ -18,6 +18,9 @@ class MutiMarkerViewController: UIViewController, GMSMapViewDelegate  {
     //test and print
     let flag = false
     
+    //segue from favorite TableViewController
+    var rentList:[Model]?
+    
     @IBOutlet weak var mapView: GMSMapView!
     @IBOutlet weak var markerDetail: UIView!
     @IBOutlet weak var rentName: UITextField!
@@ -49,6 +52,10 @@ class MutiMarkerViewController: UIViewController, GMSMapViewDelegate  {
     var orgin = GMSMarker()
     var destination = GMSMarker()
     var markersDirection = [GMSMarker]()
+    
+    var camera : GMSCameraPosition?
+    var centerLatitude:Double?
+    var centerLongitude:Double?
     
     
     func setId(id:String) -> Void{
@@ -93,13 +100,19 @@ class MutiMarkerViewController: UIViewController, GMSMapViewDelegate  {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        
         placesClient = GMSPlacesClient.shared()
         
         markerDetail.isHidden = true
         // Do any additional setup after loading the view.
-        var camera = GMSCameraPosition.camera(withLatitude: 25.035382, longitude: 121.432368, zoom: 14, bearing: 0, viewingAngle: 0)
+        if centerLatitude == nil && centerLongitude == nil{
+            camera = GMSCameraPosition.camera(withLatitude: 25.035382, longitude: 121.432368, zoom: 14, bearing: 0, viewingAngle: 0)
+        }else{
+            camera = GMSCameraPosition.camera(withLatitude: centerLatitude!, longitude: centerLongitude!, zoom: 14, bearing: 0, viewingAngle: 0)
+            
+        }
         //mapView = GMSMapView.map(withFrame: view.bounds, camera: camera)
-        mapView?.camera = camera
+        mapView?.camera = camera!
         mapView?.mapType = GMSMapViewType(rawValue: UInt(IPPROTO_SATMON))!
         //kGMSTypeSatellite
         mapView?.isMyLocationEnabled = true
@@ -174,18 +187,35 @@ class MutiMarkerViewController: UIViewController, GMSMapViewDelegate  {
                         let lastKeyValue = self.keyList[keyLength-1]
                         //Marker:- make sure at the last data
                         if key == lastKeyValue {
+                            if self.rentList != nil{
+                                for rent in self.rentList!{
+                                    let marker = GMSMarker()
+                                    marker.position = CLLocationCoordinate2DMake(rent.latitude!, rent.longitude!)
+                                    marker.title = rent.title
+                                    marker.snippet = rent.address
+                                    marker.map = self.mapView
+                                    marker.icon = UIImage(named:"home(50X50)")
+                                    self.markers.append(marker)
+                                }
+                                
+                            }else{
+                                
                             for aMarker in self.markerList{
                                 if self.flag{
                                     print("marker標題\(aMarker.title)")
                                 }
                                 
-                                let marker = GMSMarker()
-                                marker.position = CLLocationCoordinate2DMake(aMarker.latitude!, aMarker.longitude!)
-                                marker.title = aMarker.title
-                                marker.snippet = aMarker.snippet
-                                marker.map = self.mapView
-                                marker.icon = UIImage(named:"home(50X50)")
-                                self.markers.append(marker)
+                                    
+                                
+                                    let marker = GMSMarker()
+                                    marker.position = CLLocationCoordinate2DMake(aMarker.latitude!, aMarker.longitude!)
+                                    marker.title = aMarker.title
+                                    marker.snippet = aMarker.snippet
+                                    marker.map = self.mapView
+                                    marker.icon = UIImage(named:"home(50X50)")
+                                    self.markers.append(marker)
+                                
+                                }
                             }
                         }
                         
@@ -205,7 +235,7 @@ class MutiMarkerViewController: UIViewController, GMSMapViewDelegate  {
         //setupMarkerData()
         self.mapView?.delegate = self
         
-        
+        print("rentList:\(rentList)")
         
     }
     

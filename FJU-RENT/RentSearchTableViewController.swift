@@ -12,6 +12,8 @@ import FirebaseDatabase
 
 class RentSearchTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate ,UISearchResultsUpdating,UIViewControllerPreviewingDelegate, UIPickerViewDelegate, UIPickerViewDataSource{
     
+    //MARK: - Print And Test
+    let flag  = true
     
     @IBOutlet var searchTableView: UITableView!
     @IBOutlet weak var sortPicker: UIPickerView!
@@ -23,24 +25,29 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
     
     var list = [Model]()
     var keyList = [String]()
-    // replace var rentList = [Rents]()
     
-    //receive & listen
+    //Receive & Listen
     var searchText = ""
-   // var condiction = ""
-    
+    var mainList = [Model]() //默認排序
+    var secondList = [Model]()//默認排序
     var filteredRent = [Model]()
+    
+    //rent in specific area
+    var latitude:Double?
+    var longitude:Double?
+    
     
     //replace list into dict
     var detailDict = [Int: String]()
     
-    var sortList = ["默認排序","依最新上架排序","依價錢高到低","依價錢低到高"]
+    var sortList = ["默認排序","依最新上架排序","依價錢高到低","依價錢低到高","依按讚數排列"]
     
     override func viewDidLoad() {
         
         super.viewDidLoad()
         
-        //3d touch
+       
+        //MARK: - 3d touch
         if(traitCollection.forceTouchCapability == .available){
             registerForPreviewing(with: self as! UIViewControllerPreviewingDelegate, sourceView: view)
         }
@@ -79,21 +86,16 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
  
             
             if snapshot.childrenCount > 0{
-                //self.list.removeAll()
                 for rents in snapshot.children.allObjects as! [DataSnapshot]{
   
                     let rentKey = rents.key as! String
                     self.keyList.append(rentKey)
                 }
-                //print(self.keyList)
                 for key in self.keyList{
-                    //print("key:\(key)")
                     let databaseRef = Database.database().reference().child("location").child(key)
                     databaseRef.observeSingleEvent(of: .value, with: { (snapshot) in
                         
-                        //.observe(DataEventType.value, with: { (snapshot) in
                         if snapshot.childrenCount > 0{
-                            //self.list.removeAll()
                             for rents in snapshot.children.allObjects as! [DataSnapshot]{
                                 let rentObject = rents.value as? [String: Any]
                                 let rentTitle = rentObject?["title"] as! String
@@ -117,18 +119,17 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
                                 if rentLikeCount == nil{
                                     rentLikeCount = 0
                                 }
-                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
+                                let latitude = rentObject?["latitude"] as! Double?
+                                let longitude = rentObject?["longitude"] as! Double?
+                               
+                                
+                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!, latitude: latitude!, longitude:longitude!)
+                             
                                 
                                 self.list.append(rentList)
-                             
-//                                if self.condiction == "依最新上架排序"{
-//                                    self.list = self.list.sorted(by: {$0.timeStamp > $1.timeStamp})
-//                                    self.tableView.reloadData()
-//                                    
-//                                }
-                            self.tableView.reloadData()
+                                self.mainList.append(rentList)
+
                             }
-                            //self.tableView.reloadData()
                             DispatchQueue.main.async {
                                 
                                 self.filterContentForMultiSearch(searchText, rentType, rentArea, rentMoney: rentMoney)
@@ -148,7 +149,8 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
     }
     
     
-    //搜尋前進行過濾
+    //MARK: - 搜尋前進行過濾
+    
     //get rent type
     func getType()-> String {
         let rentType = detailDict[0]
@@ -223,6 +225,34 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
         }
     }
     
+    //func find rent near the specific area
+    func findRentNearTheSpecificArea(centerLatitude: Double, centerLongitude: Double, latitude : Double, longitude : Double) -> Bool{
+        
+        let EARTH_RADIUS:Double = 6378.137
+        
+        let radlng1:Double = centerLongitude * Double.pi / 180.0
+        let radlng2:Double = longitude * Double.pi / 180.0
+        
+        let a:Double = radlng1 - radlng2;
+        let b:Double = (centerLatitude - latitude) * Double.pi / 180
+        var s:Double = 2 * asin(sqrt(pow(sin(a/2), 2) + cos(radlng1) * cos(radlng2) * pow(sin(b/2), 2)))
+       
+        
+        s = s * EARTH_RADIUS
+        s = (round(s * 10000) / 10000)
+        if flag{
+            print("距離：\(s)")
+        }
+        let range = 0.5
+        if s <= range {
+            return true
+            print("在商圈範圍內")
+        }else{
+            return false
+            print("在商圈範圍外")
+        }
+    }
+    
     //filter string into number
     func filterStringIntoNumber(str: String) -> Int {
         let numbers = str.characters
@@ -234,12 +264,21 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
     //add array != 0
     func searchConditionIsEmpty() -> Bool {
         // Returns true if the list is empty or nil
-        return detailDict.isEmpty ?? true
+        return detailDict.isEmpty  ?? true
     }
     
     func searchBarIsEmpty() -> Bool {
         // Returns true if the text is empty or nil
         return searchController.searchBar.text?.isEmpty ?? true
+    }
+    
+    func findRentInSpecificAreaConditionIsEmpty() -> Bool{
+        if latitude == nil || longitude == nil{
+            return true
+        }else{
+            return false
+        }
+        
     }
     
     func updateSearchResults(for searchController: UISearchController) {
@@ -263,18 +302,28 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
             return false
         })
         
-        
+        secondList = filteredRent
         
         
         searchTableView.reloadData()
     }
     
-    //multi search
+    //MARK; - Multi Search
     func filterContentForMultiSearch(_ searchText: String,_ rentType: String, _ rentArea:String, rentMoney: [Int], scope: String = "All") {
         filteredRent = list.filter({( rent : Model) -> Bool in
             
-            if let name = rent.title, let type = rent.genre, let address = rent.address, let money = rent.money, let area = rent.area{
-                if searchText != ""{
+            if let name = rent.title, let type = rent.genre, let address = rent.address, let money = rent.money, let area = rent.area, let latitude = rent.latitude, let longitude = rent.longitude {
+                if self.latitude != nil && self.longitude != nil{
+                    if flag{
+                        print("name:\(name)")
+                        print("可以用經緯度選取範圍\(latitude),\(longitude)")
+                        print("center:\(self.latitude),\(self.longitude)")
+                    }
+                    
+                    let isMatch = findRentNearTheSpecificArea(centerLatitude: self.latitude!,centerLongitude: self.longitude!,latitude: latitude,longitude: longitude)
+                    return isMatch
+                    
+                } else if searchText != ""{
                     //print("以search bar 內容為條件進行搜尋")
                     let isMatch = name.localizedCaseInsensitiveContains(searchText) || address.localizedCaseInsensitiveContains(searchText) || money.localizedCaseInsensitiveContains(searchText) || area.localizedCaseInsensitiveContains(searchText)
                     return isMatch
@@ -320,7 +369,7 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
             
             return false
         })
-        
+        secondList = filteredRent
         searchTableView.reloadData()
     }
     
@@ -330,14 +379,17 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
         return 1
     }
     
-    //search bar filter
+    //MARK: - Search bar Filter
     func isFiltering() -> Bool {
-        if searchBarIsEmpty() {
-            if searchConditionIsEmpty(){
-                return false
+        if findRentInSpecificAreaConditionIsEmpty(){
+            if searchBarIsEmpty() {
+                if searchConditionIsEmpty(){
+                    return false
+                }
+                
             }
-            
         }
+        
         return true
     }
     
@@ -346,7 +398,7 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
         section:Int) -> Int {
         
         if isFiltering() {
-            searchFooter.setIsFilteringToShow(filteredItemCount: filteredRent.count, of: list.count) //filter 搜尋顯示
+            searchFooter.setIsFilteringToShow(filteredItemCount: filteredRent.count, of: list.count)
             return filteredRent.count
         }
         
@@ -371,8 +423,10 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
         cell.moneyLabel?.text = rent.money
 
         
+        if flag{
+            print("\(rent.title):\(rent.imgPath)")
+        }
         
-        print("\(rent.title):\(rent.imgPath)")
         
         if let rentImageUrl = rent.imgPath{
             let url = URL(string: rentImageUrl)
@@ -425,7 +479,7 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
     @IBAction func sort(_ sender: Any) {
         self.showPickerView()
     }
-    //prepare for segue
+    //MARK: - Prepare for Segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
         if segue.identifier == "detail" {
             if let indexPath = searchTableView.indexPathForSelectedRow{
@@ -446,12 +500,49 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
                 
             }
         }
+        if segue.identifier == "maps" {
+            let destinationController = segue.destination as! MutiMarkerViewController
+            if isFiltering() {
+                destinationController.rentList = filteredRent
+                if filteredRent.count != 0{
+                    destinationController.centerLatitude = filteredRent[0].latitude
+                    destinationController.centerLongitude = filteredRent[0].longitude
+                }
+                
+            } else {
+                destinationController.rentList = list
+                destinationController.centerLatitude = list[0].latitude
+                destinationController.centerLongitude = list[0].longitude
+                
+            }
+            
+            
+        }
     }
+    
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-//        areaMessageField.text = list[row]
-//        if areaMessageField.text == list[0]{
-//            areaMessageField.text = ""
-//        }
+        if row == 0{
+            self.list = self.mainList
+            self.filteredRent = self.secondList
+            self.tableView.reloadData()
+        }
+        else if row == 1{
+            self.list = self.list.sorted(by: {$0.timeStamp > $1.timeStamp})
+            self.filteredRent = self.filteredRent.sorted(by: {$0.timeStamp > $1.timeStamp})
+            self.tableView.reloadData()
+        }else if row == 2{
+            self.list = self.list.sorted(by: {Int($0.money!)! > Int($1.money!)!})
+            self.filteredRent = self.filteredRent.sorted(by: {Int($0.money!)! > Int($1.money!)!})
+            self.tableView.reloadData()
+        }else if row == 3{
+            self.list = self.list.sorted(by: {Int($0.money!)! < Int($1.money!)!})
+            self.filteredRent = self.filteredRent.sorted(by: {Int($0.money!)! < Int($1.money!)!})
+            self.tableView.reloadData()
+        }else if row == 4{
+            self.list = self.list.sorted(by: {$0.likeCount > $1.likeCount})
+            self.filteredRent = self.filteredRent.sorted(by: {$0.likeCount > $1.likeCount})
+            self.tableView.reloadData()
+        }
     }
     
     // MARK: - Peek and Pop 3d touch
@@ -465,29 +556,24 @@ class RentSearchTableViewController: UIViewController, UITableViewDataSource, UI
             return nil
         }
         
-        guard let SystemMessageDetailViewController = storyboard?.instantiateViewController(withIdentifier: "DetailTableViewController") as? DetailTableViewController else {
+        guard let DetailTableViewController = storyboard?.instantiateViewController(withIdentifier: "DetailTableViewController") as? DetailTableViewController else {
             return nil
         }
         
-        //let selectedFilteredRent = [indexPath.row]
-        //DetailTableViewController = selectedFilteredRent
+        let selectedFilteredRent = filteredRent[indexPath.row]
         
-        //DetailTableViewController
-        
-        //let selectedSystemMessage2 = systemMessageTitle[indexPath.row]
-       //DetailTableViewController.= selectedFilteredRent
-        
-        //SystemMessageDetailViewController.systemMessage = selectedSystemMessage
-        //SystemMessageDetailViewController.systemMessageTitle = selectedSystemMessage2
-       //DetailTableViewController.preferredContentSize = CGSize(width: 0.0, height: 450.0)
+        DetailTableViewController.id = selectedFilteredRent.id!
+        DetailTableViewController.uid = selectedFilteredRent.uid!
+        DetailTableViewController.preferredContentSize = CGSize(width: 0.0, height: 450.0)
         previewingContext.sourceRect = cell.frame
         
-        return SystemMessageDetailViewController
+        return DetailTableViewController
     }
     
     func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
         show(viewControllerToCommit, sender: self)
     }
+
     
 }
 

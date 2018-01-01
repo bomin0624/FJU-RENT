@@ -105,10 +105,7 @@ class SearchSelectViewController: UIViewController , UITableViewDelegate , UITab
         tableView.beginUpdates()
         tableView.reloadSections([indexPath.section], with:.automatic)
         
-        //test
-        //print("detail:\(sections[indexPath.section].detail[indexPath.row])")
-        
-        //add new search detail
+        //MARK: - add new search detail
         
         detailDict.updateValue(sections[indexPath.section].detail[indexPath.row], forKey:indexPath.section )
         
@@ -140,6 +137,7 @@ class SearchSelectViewController: UIViewController , UITableViewDelegate , UITab
         if segue.identifier == "searchResult" {
             
             let destinationController = segue.destination as! RentSearchTableViewController
+            
             //send search text
             destinationController.searchText = searchBar.text!
             

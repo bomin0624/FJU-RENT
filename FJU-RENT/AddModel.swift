@@ -25,8 +25,11 @@ class Model {
     var area: String?
     var likeCount = Int()
     var timeStamp = Int()
+    
+    var latitude: Double?
+    var longitude: Double?
     //add
-    init(title: String?, money: String?, pings: String?, imgPath: String?, id: String?, uid: String?, uniString: String?,address: String?, genre :String? , area: String?, likeCount: Int, timeStamp: Int){
+    init(title: String?, money: String?, pings: String?, imgPath: String?, id: String?, uid: String?, uniString: String?,address: String?, genre :String? , area: String?, likeCount: Int, timeStamp: Int, latitude: Double?, longitude: Double?){
         self.title = title
         self.money = money
         self.pings = pings
@@ -40,5 +43,8 @@ class Model {
         self.area = area
         self.genre = genre
         self.likeCount = likeCount
+        
+        self.latitude = latitude
+        self.longitude = longitude
     }
 }

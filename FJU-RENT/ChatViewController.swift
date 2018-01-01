@@ -16,8 +16,9 @@ enum Status {
     
 }
 
-class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDelegate{
+class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIGestureRecognizerDelegate{
     
+    @IBOutlet weak var bottomConstant: NSLayoutConstraint!
     let managerId = "HcGcR1aIlSa8wbZ2w0JTgay4Try1"
     
     var posts = [Post]()
@@ -28,6 +29,8 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
     var reports = [Reports]()
     var reportStatus = Status.ok
     
+    @IBOutlet weak var viewBottomConstant: NSLayoutConstraint!
+   
     @IBOutlet weak var messageField: UITextField!
     @IBOutlet weak var messageTableView: UITableView!
     override func viewDidLoad() {
@@ -57,22 +60,16 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 self.messageTableView.reloadData()
             }
-            
-            
-                //.scrollToRow(at: IndexPath(row: rows, section: 0), at: .top, animated: true)
           
         })
-        //self.messageTableView.scrollToRow(at: IndexPath.init(row: self.posts.count-1, section: 0), at: .bottom, animated: true)
+
         self.messageTableView.rowHeight = UITableViewAutomaticDimension
-        self.messageTableView.estimatedRowHeight = 144//調整cell高度
+        self.messageTableView.estimatedRowHeight = 144 //調整cell高度
         
         
         
         //set exist reports
         ref.child("Reports").observe(DataEventType.value, with: { (snapshot) in
-            
-
-            //.observeSingleEvent(of: .value, with: { (snapshot) in
             
             self.reports.removeAll()
             
@@ -84,7 +81,6 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     
                     for report in reports{
                        
-                        //print(report)
                         
                         let existPostId = report["postId"] as! String
                         let existReporter = report["reporter"] as! String
@@ -92,7 +88,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                         let existUid = report["uid"] as! String
                         let existReportId = report["reportId"] as! String
                         let existReportReason = report["reportReason"] as! String
-                        let data = Reports(id : existId, uid : existUid, postId : existPostId, reporter : existReporter, reportId : existReportId, reportReason: existReportReason)
+                        let data = Reports(id : existId, uid : existUid, postId : existPostId, reporter : existReporter, reportId : existReportId, reportReason: existReportReason, uidName: "", reporterName: "", uidNameType: "")
                         
                         self.reports.append(data)
                         
@@ -102,18 +98,58 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             }
             
         })
-      
-        //scoll to row..
-        //let secon = 0 //最后一个分组的索引（0开始，如果没有分组则为0）
-        //let rows = 1 //最后一个分组最后一条项目的索引
-        //let index = IndexPath(row: rows, section: secon)
-        //self.messageTableView.scrollToRow(at: index, at:.bottom, animated: true)
+       
+        
+        
+   
+        //MARK: - 鍵盤伸縮
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(Notification:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(Notification:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+ 
+    }
+    //MARK: - 鍵盤伸縮
+    func keyboardWillShow(Notification:NSNotification){
+        if let info = Notification.userInfo{
+            let rect: CGRect = info["UIKeyboardFrameEndUserInfoKey"] as!CGRect
+        self.view.layoutIfNeeded()
+            
+            UIView.animate(withDuration: 0.25, animations: {
+            self.view.layoutIfNeeded()
+               self.viewBottomConstant.constant = rect.height
+
+            })
+        
+        }
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.handleSingleTap))
+        self.view.addGestureRecognizer(tapRecognizer)
+        
+        
+        
         
         
     }
+    func handleSingleTap(recognizer: UITapGestureRecognizer){
+    self.view.endEditing(true)
     
-   
-    @IBAction func sendMessage(_ sender: Any) {//發布訊息
+    
+    }
+    func keyboardWillHide(Notification:NSNotification){
+        if let info = Notification.userInfo{
+            let rect: CGRect = info["UIKeyboardFrameEndUserInfoKey"] as!CGRect
+            self.view.layoutIfNeeded()
+            
+            UIView.animate(withDuration: 0.25, animations: {
+                self.view.layoutIfNeeded()
+                self.viewBottomConstant.constant = 0
+                
+            })
+            
+        }
+    }
+    
+
+    //MARK: - 發佈訊息
+    @IBAction func sendMessage(_ sender: Any) {
         
         if (messageField.text?.characters.count)! >= 5{
             var username = ""
@@ -131,7 +167,6 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             print(poster)
             print("uid:\(uid)")
             print("current:\(currentUser)")
-            //edit
             let key = ref.childByAutoId().key
             let bodyData :[String : Any] = ["uid" : currentUser!,
                                             "bodyText": messageField.text!,
@@ -139,12 +174,12 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                                             "time": timeStamp,
                                             "postId":key]
             ref.child("Posts").child(id).child(key).setValue(bodyData)
-            messageField.text = ""//清空textField
+            messageField.text = ""
            
             
         }else {
             
-            let alertController = UIAlertController(title: "打太少惹ㄅ", message: "多打一點好不", preferredStyle: .alert)
+            let alertController = UIAlertController(title: "輸入字數過少", message: "請輸入至少五個字", preferredStyle: .alert)
             
             let defaultAction = UIAlertAction(title: "我知道了", style: .cancel, handler: nil)
             alertController.addAction(defaultAction)
@@ -154,11 +189,9 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
         return 1
     }
     
@@ -172,19 +205,16 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let timeInterval: TimeInterval = TimeInterval(timeStamp!)
         let date = Date(timeIntervalSince1970: timeInterval)
         let dformatter = DateFormatter()
-        dformatter.dateFormat = "yyyy年MM月dd日 HH:mm:ss"//轉換時間
+        
+        //MARK: - 轉換時間
+        dformatter.dateFormat = "yyyy年MM月dd日 HH:mm:ss"
         cell.timeLabel.text = "\(dformatter.string(from: date))"
         cell.textBody.text = posts[indexPath.row].bodyText
         print(posts[indexPath.row].bodyText)
         let postId = posts[indexPath.row].postId
-        //let index = indexPath
         if postId == self.postId {
             cell.textBody.backgroundColor = UIColor.gray
             cell.textBody.textColor = UIColor.black
-            
-            //self.messageTableView.scrollToRow(at: index, at: .bottom, animated: true)
-            //self.messageTableView.scrollToRow(at: IndexPath.init(row: indexPath, section: 0), at: .bottom, animated: true)
-
         }
         cell.nameLabel.text = posts[indexPath.row].username
         
@@ -192,24 +222,10 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         return cell
     }
-    //func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-    //    if editingStyle == .delete {
-            // Delete the row from the data source
-    //        posts.remove(at: indexPath.row)
-            
-    //    }
-        
-    //    tableView.deleteRows(at: [indexPath], with: .fade)
-        
-        //test
-        //print("Total item: \(posts.count)")
-        //for post in posts {
-        //    print("name:\(post.bodyText)")
-        //}
-    //}
+
     func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         
-        //缺少:，不可以重複舉報
+        //MARK: - 缺少 不可以重複舉報
         let reportAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "report", handler: { (action, indexPath) -> Void in
             
             
@@ -227,7 +243,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             print("留言者：\(postUid)")
             print("正在舉報中。。")
             
-            //限制：不可以舉報自己
+            //MARK： - 不可以舉報自己
             guard  currentUser != postUid else {
                 let alertController = UIAlertController(title: "舉報失敗", message: "自己舉報自己，是在鬧哪樣！！", preferredStyle: .alert)
                 
@@ -236,15 +252,13 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 self.present(alertController, animated: true, completion: nil)
                 
-                //reflesh
                 tableView.reloadData()
                 return
             }
             
-            //限制：不可以重複舉報
+            //MARK： - 不可以重複舉報
            
             for report in self.reports{
-                //print(report)
                 let existPostId = report.postId
                 let existReporter = report.reporter
                 if existPostId == postId && existReporter == currentUser {
@@ -260,21 +274,19 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 self.reportStatus = .ok
                 self.present(alertController, animated: true, completion: nil)
                 
-                //reflesh
                 tableView.reloadData()
                 return
             }
             
-            //舉報原因
+            //MARK: - 舉報原因
             let optionMenu = UIAlertController(title: nil, message: "為何舉報該評論?", preferredStyle: .actionSheet)
             let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
             optionMenu.addAction(cancelAction)
             
-            // Add report reason:1
+            // MARK: - Add Report Reason:1
             let reportReasonOneActionHandler = { (action:UIAlertAction!) -> Void in
                 
                 let reportReason = "惡意攻擊或辱罵屋主及他人"
-                //report/postUid(留言者)/autoId/房屋id+屋主uid+舉報人id+舉報留言id+autoId
                 let key = ref.childByAutoId().key
                 let bodyData :[String : Any] = ["uid" : uid,
                                                 "id": id,
@@ -285,7 +297,6 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 ]
                 ref.child("Reports").child(postUid!).child(key).setValue(bodyData)
                 
-                //alert
                 let alertController = UIAlertController(title: "舉報成功", message: "我們會盡快通知留言人，感謝您的反饋！！", preferredStyle: .alert)
                 
                 let defaultAction = UIAlertAction(title: "我知道了", style: .cancel, handler: nil)
@@ -293,14 +304,13 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 
                 self.present(alertController, animated: true, completion: nil)
             }
-            // Add report reason:2
+            // MARK: - Add Report Reason:2
             let reportReasonOneAction = UIAlertAction(title: "惡意攻擊或辱罵屋主及他人", style: .default, handler: reportReasonOneActionHandler)
             optionMenu.addAction(reportReasonOneAction)
             
             let reportReasonTwoActionHandler = { (action:UIAlertAction!) -> Void in
                 
                 let reportReason = "廣告及垃圾信息"
-                //report/postUid(留言者)/autoId/房屋id+屋主uid+舉報人id+舉報留言id+autoId
                 let key = ref.childByAutoId().key
                 let bodyData :[String : Any] = ["uid" : uid,
                                                 "id": id,
@@ -311,7 +321,6 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 ]
                 ref.child("Reports").child(postUid!).child(key).setValue(bodyData)
                 
-                //alert
                 let alertController = UIAlertController(title: "舉報成功", message: "我們會盡快通知留言人，感謝您的反饋！！", preferredStyle: .alert)
                 
                 let defaultAction = UIAlertAction(title: "我知道了", style: .cancel, handler: nil)
@@ -323,11 +332,10 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             let reportReasonTwoAction = UIAlertAction(title: "廣告及垃圾信息", style: .default, handler: reportReasonTwoActionHandler)
             optionMenu.addAction(reportReasonTwoAction)
             
-            // Add report reason:3
+            // MARK: - Add Report Reason:3
             let reportReasonThreeActionHandler = { (action:UIAlertAction!) -> Void in
                 
                 let reportReason = "色情、淫穢內容"
-                //report/postUid(留言者)/autoId/房屋id+屋主uid+舉報人id+舉報留言id+autoId
                 let key = ref.childByAutoId().key
                 let bodyData :[String : Any] = ["uid" : uid,
                                                 "id": id,
@@ -338,7 +346,6 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 ]
                 ref.child("Reports").child(postUid!).child(key).setValue(bodyData)
                 
-                //alert
                 let alertController = UIAlertController(title: "舉報成功", message: "我們會盡快通知留言人，感謝您的反饋！！", preferredStyle: .alert)
                 
                 let defaultAction = UIAlertAction(title: "我知道了", style: .cancel, handler: nil)
@@ -350,11 +357,10 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             let reportReasonThreeAction = UIAlertAction(title: "色情、淫穢內容", style: .default, handler: reportReasonThreeActionHandler)
             optionMenu.addAction(reportReasonThreeAction)
             
-            // Add report reason:4
+            // MARK: - Add report reason:4
             let reportReasonFourActionHandler = { (action:UIAlertAction!) -> Void in
                 
                 let reportReason = "激進時政、敏感信息"
-                //report/postUid(留言者)/autoId/房屋id+屋主uid+舉報人id+舉報留言id+autoId
                 let key = ref.childByAutoId().key
                 let bodyData :[String : Any] = ["uid" : uid,
                                                 "id": id,
@@ -365,7 +371,6 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 ]
                 ref.child("Reports").child(postUid!).child(key).setValue(bodyData)
                 
-                //alert
                 let alertController = UIAlertController(title: "舉報成功", message: "我們會盡快通知留言人，感謝您的反饋！！", preferredStyle: .alert)
                 
                 let defaultAction = UIAlertAction(title: "我知道了", style: .cancel, handler: nil)
@@ -378,16 +383,15 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
             optionMenu.addAction(reportReasonFourAction)
             
             
-            // Display the menu
+            // MARK: - Display the Menu
             self.present(optionMenu, animated: true, completion: nil)
             
             
             
-            //reflesh
             tableView.reloadData()
         })
         
-        // Delete button
+        // MARK: - Delete Button
         let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "Delete",handler: { (action, indexPath) -> Void in
             
             let detaRef = Database.database().reference()
@@ -414,13 +418,10 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 return
             }
             
-            //Delete data in cloud drive
-            
+            //MARK: - Delete data in cloud drive
             detaRef.child("Posts").child(id).child(postId!).setValue(nil)
-            
             //delete in reports
             for report in self.reports{
-                //print(report)
                 let existPostId = report.postId
                 let existReporter = report.reporter as! String
                 let existReportId = report.reportId as! String

@@ -11,69 +11,68 @@ import Firebase
 import FirebaseDatabase
 import FirebaseStorage
 
-class RentalTableViewController: UITableViewController {
+class RentalTableViewController: UITableViewController,UIViewControllerPreviewingDelegate {
     
     var list = [Model]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //MARK: - 3d touch
+        if(traitCollection.forceTouchCapability == .available){
+            registerForPreviewing(with: self as! UIViewControllerPreviewingDelegate, sourceView: view)
+        }
+        self.LoadFromDatabase()
+        self.refreshControl = UIRefreshControl()
+        self.refreshControl?.attributedTitle = NSAttributedString(string: "下拉以重新整理...")
+        self.refreshControl?.addTarget(self, action: #selector(refreshData(_:)), for: UIControlEvents.valueChanged)
+        self.tableView.addSubview(refreshControl!)
+    }
+    func LoadFromDatabase(){
         let user = Auth.auth().currentUser
         if let user = user{
             let uid = user.uid
             
-        let databaseRef = Database.database().reference().child("location").child(uid)
-        databaseRef.observeSingleEvent(of: .value, with: { (snapshot) in
-         
-            //.observe(DataEventType.value, with: { (snapshot) in
-            if snapshot.childrenCount > 0{
-                self.list.removeAll()
-                for rents in snapshot.children.allObjects as! [DataSnapshot]{
-                    let rentObject = rents.value as? [String: Any]
-                    let rentTitle = rentObject?["title"] as! String
-                    let rentMoney = rentObject?["rent"] as! String
-                    let rentPings = rentObject?["pings"] as! String
-                    let rentId = rentObject?["id"] as! String
-                    let rentUid = rentObject?["uid"] as! String
-                    let rentImgStorage = rentObject?["imgStorage"] as? NSDictionary
-                    let imgDict = rentImgStorage?.allValues[0] as! [String : Any]
-                    let rentUniString = imgDict["imgName"] as! String
-                    let rentImg = imgDict["imgUrl"] as! String
-                    
-                    //add
-                    let rentArea = rentObject?["area"] as! String?
-                    let rentAddress = rentObject?["address"] as! String?
-                    let rentType = rentObject?["type"] as! String?                    
-                    let rentLikeCount = rentObject?["likeCount"] as! Int?
-                    let timeStamp = rentObject?["timeStamp"] as! Int?
-
-                    
-                    //選取所有
-                    //for img in rentImgStorage {
-                    //    print(img.key)
-                    //    print(img.value)
-                    //    let imgDict = img.value as! [String:Any]
-                    //    let rentUniString = imgDict["imgName"] as! String
-                        print(rentUniString)
-                    //}
-                    
-                    
-                    //顯示第一張
-                    //let rentImgAutoId = rentImgStorage.allKeys[0]
-                    //print(rentImgAutoId)
-                    //let imgDict = rentImgStorage.allValues[0] as! [String : Any]
-                    //let rentUniString = imgDict["imgName"] as! String
-                    //let rentImg = imgDict["imgUrl"] as! String
-                    //print(rentUniString)
-                    
-                    let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
-                    
-                    self.list.append(rentList)
-            }
-                self.tableView.reloadData()
+            let databaseRef = Database.database().reference().child("location").child(uid)
+            databaseRef.observeSingleEvent(of: .value, with: { (snapshot) in
                 
-            }
-        })
+                if snapshot.childrenCount > 0{
+                    self.list.removeAll()
+                    for rents in snapshot.children.allObjects as! [DataSnapshot]{
+                        let rentObject = rents.value as? [String: Any]
+                        let rentTitle = rentObject?["title"] as! String
+                        let rentMoney = rentObject?["rent"] as! String
+                        let rentPings = rentObject?["pings"] as! String
+                        let rentId = rentObject?["id"] as! String
+                        let rentUid = rentObject?["uid"] as! String
+                        let rentImgStorage = rentObject?["imgStorage"] as? NSDictionary
+                        let imgDict = rentImgStorage?.allValues[0] as! [String : Any]
+                        let rentUniString = imgDict["imgName"] as! String
+                        let rentImg = imgDict["imgUrl"] as! String
+                        
+                        //add
+                        let rentArea = rentObject?["area"] as! String?
+                        let rentAddress = rentObject?["address"] as! String?
+                        let rentType = rentObject?["type"] as! String?
+                        let rentLikeCount = rentObject?["likeCount"] as! Int?
+                        let timeStamp = rentObject?["timeStamp"] as! Int?
+                        let latitude = rentObject?["latitude"] as! Double?
+                        let longitude = rentObject?["longitude"] as! Double?
+                        let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!, latitude: latitude!, longitude: longitude!)
+                        
+                        self.list.append(rentList)
+                    }
+                    self.tableView.reloadData()
+                    
+                }
+            })
         }
+    }
+    func refreshData(_ refreshControl: UIRefreshControl){
+        self.list.removeAll()
+        self.LoadFromDatabase()
+        self.tableView.reloadData()
+        self.refreshControl?.endRefreshing()
     }
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -89,10 +88,6 @@ class RentalTableViewController: UITableViewController {
         cell.nameLabel?.text = rentList.title
         cell.addressLabel?.text = rentList.address
         cell.moneyLabel?.text = rentList.money
-        
-        
-        
-        //   print("\(rent.title):\(rent.imgPath)")
         
         if let rentImageUrl = rentList.imgPath{
             let url = URL(string: rentImageUrl)
@@ -115,6 +110,7 @@ class RentalTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
     }
+    
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         let alertController = UIAlertController(title: "確認刪除此筆資料嗎?", message: "", preferredStyle: .alert)
         let okAction = UIAlertAction(title: "刪除", style: .destructive, handler:{
@@ -176,15 +172,41 @@ class RentalTableViewController: UITableViewController {
                 let destinationController = segue.destination as! DetailTableViewController
                 destinationController.id = rentList.id!
                 destinationController.uid = rentList.uid!
-                
                 destinationController.likeCount = rentList.likeCount
-                //destinationController.uniqueString = rentList.uniString!
-                //destinationController.imgUrl = rentList.imgPath!
+                
             }
         }
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    }
+    
+    // MARK: - Peek and Pop 3d touch
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        
+        guard let indexPath = tableView.indexPathForRow(at: location) else {
+            return nil
+        }
+        
+        guard let cell = tableView.cellForRow(at: indexPath) else {
+            return nil
+        }
+        
+        guard let DetailTableViewController = storyboard?.instantiateViewController(withIdentifier: "DetailTableViewController") as? DetailTableViewController else {
+            return nil
+        }
+        
+        let selectedFilteredRent = list[indexPath.row]
+        
+        DetailTableViewController.id = selectedFilteredRent.id!
+        DetailTableViewController.uid = selectedFilteredRent.uid!
+        DetailTableViewController.preferredContentSize = CGSize(width: 0.0, height: 450.0)
+        previewingContext.sourceRect = cell.frame
+        
+        return DetailTableViewController
+    }
+    
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+        show(viewControllerToCommit, sender: self)
     }
 }

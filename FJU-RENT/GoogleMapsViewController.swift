@@ -750,8 +750,7 @@ class GoogleMapsViewController: UIViewController, CLLocationManagerDelegate , GM
             let destinationController = segue.destination as! RentSearchTableViewController
             //send search text
             destinationController.searchText = nameLabel.text!
-            //send condition
-            //destinationController.detailDict = detailDict
+
             
         }
         

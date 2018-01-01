@@ -11,7 +11,7 @@ import Firebase
 
 class GreatValRentTableViewController: UITableViewController {
     var list = [Model]()
-    var rankingList = [Int]()   //排行榜
+    var rankingList = [Int]()
     var keyList = [String]()
     
     override func viewDidLoad() {
@@ -55,17 +55,17 @@ class GreatValRentTableViewController: UITableViewController {
                                 if rentLikeCount == nil{
                                     rentLikeCount = 0
                                 }
-                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
+                                let latitude = rentObject?["latitude"] as! Double?
+                                let longitude = rentObject?["longitude"] as! Double?
+                                
+                                let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!, latitude: latitude!, longitude: longitude!)
                                 
                                let values = Int(rentMoney)
                                 
                                 if values! >= 5000 && values! <= 7000 {
                                     self.list.append(rentList) //存取陣列
                                 }
-                               
-                                //self.list = self.list.sorted(by: { $0.likeCount > $1.likeCount })
                             }
-                            //print(self.rankingList)
                             
                             let keyLength = self.keyList.count
                             let lastKeyValue = self.keyList[keyLength-1]
@@ -93,13 +93,7 @@ class GreatValRentTableViewController: UITableViewController {
         cell.nameLabel?.text = rent.title
         cell.addressLabel?.text = rent.address
         cell.moneyLabel?.text = rent.money
-        //cell.rank.text = "\(indexPath.row+1)" //排行數字
         
-        
-        
-        
-        
-        //cell.imageView?.image = UIImage(named: "yo")
         
         
         if let rentImageUrl = rent.imgPath{
@@ -113,7 +107,6 @@ class GreatValRentTableViewController: UITableViewController {
                 DispatchQueue.main.async {
                     let sortedArray = self.rankingList.sorted(by: >)
                     cell.rentImage.image = UIImage(data:data!)
-                    //.imageView?.image = UIImage(data:data!)
                 }
                 
             }).resume()
@@ -121,7 +114,7 @@ class GreatValRentTableViewController: UITableViewController {
         }
         return cell
     }
-    //prepare for segue
+    //MARK: - Prepare For Segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
         if segue.identifier == "homedetail" {
             if let indexPath = tableView.indexPathForSelectedRow{
@@ -137,7 +130,6 @@ class GreatValRentTableViewController: UITableViewController {
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {

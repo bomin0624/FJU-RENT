@@ -14,7 +14,7 @@ class CompareModel: NSObject {
     var pings: String?
     var id: String?
     var uid: String?
-    
+    var likeCount = Int()
     
     //add
     var address: String?
@@ -22,14 +22,14 @@ class CompareModel: NSObject {
     var genre: String? //type
     var floor : String?
     //add
-    init(title: String?, money: String?, pings: String?, id: String?, uid: String?, address: String?, genre :String? , floor: String?){
+    init(title: String?, money: String?, pings: String?, id: String?, uid: String?, address: String?,likeCount : Int,  genre :String? , floor: String?){
         self.title = title
         self.money = money
         self.pings = pings
         
         self.id = id
         self.uid = uid
-        
+        self.likeCount = likeCount
         //add
         self.address = address
         

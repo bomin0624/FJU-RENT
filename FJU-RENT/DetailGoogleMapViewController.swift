@@ -14,6 +14,11 @@ import GooglePlacePicker
 class DetailGoogleMapViewController:UIViewController,  GMSMapViewDelegate,  CLLocationManagerDelegate  {
 
     
+    
+    
+    //test and print
+    let flag = false
+    
     @IBOutlet weak var googleMapsView: GMSMapView!
     
     var userCreatedMarker: CSMarker?
@@ -26,14 +31,36 @@ class DetailGoogleMapViewController:UIViewController,  GMSMapViewDelegate,  CLLo
     var longitude : Double?
     var latitude : Double?
     
+    //set up init markers: orgin & destination
+    var orgin = GMSMarker()
+    var destination = GMSMarker()
+    var markersDirection = [GMSMarker]()
+    
+    //init route path
+    var snackLine = GMSPolyline()
+    
+    var placesClient: GMSPlacesClient!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
        
-       
+        placesClient = GMSPlacesClient.shared()
         
-        fetchTheAddressInMap()
+        
+        //fetchCurrentPlace()
+        if address == ""{
+            print("未接收地址")
+        }else{
+            fetchTheAddressInMap()
+        }
+        
         //initPositioningAt()
         //downloadMarkerData(address)
+        googleMapsView.isMyLocationEnabled = true
+        googleMapsView.settings.compassButton = true
+        googleMapsView.settings.myLocationButton = true
+        
+        fetchCurrentPlace()
       
         //地址轉坐標
         let config = URLSessionConfiguration.default
@@ -86,29 +113,41 @@ class DetailGoogleMapViewController:UIViewController,  GMSMapViewDelegate,  CLLo
         
         //fetch josn
         let results = json["results"] as? [[String:Any]]
-        let result = results![0]
-        let address = result["formatted_address"] as? String
-        let geometry = result["geometry"] as? [String:Any]
-        let locationType = geometry?["location_type"] as? String
-        let location = geometry?["location"] as? [String:Any]
-        let latitude = location?["lat"] as? Double
-        let longitude = location?["lng"] as? Double
-        
-        setLatitude(latitude: latitude!)
-        setLongitude(longitude: longitude!)
-        
-        let camera = GMSCameraPosition.camera(withLatitude: latitude!, longitude: longitude!, zoom: 15.0)
-        self.googleMapsView.delegate = self
-        self.googleMapsView.camera = camera
-        
-        
-        let marker = CSMarker()
-        marker.position = CLLocationCoordinate2DMake(latitude!, longitude!)
-        marker.title = self.address
-        marker.snippet = address
-        
-        self.userCreatedMarker = marker
-        displayMarker()
+        if (results?.count)! > 0{
+            let result = results![0]
+            let address = result["formatted_address"] as? String
+            let geometry = result["geometry"] as? [String:Any]
+            let locationType = geometry?["location_type"] as? String
+            let location = geometry?["location"] as? [String:Any]
+            let latitude = location?["lat"] as? Double
+            let longitude = location?["lng"] as? Double
+            
+            setLatitude(latitude: latitude!)
+            setLongitude(longitude: longitude!)
+            
+            let camera = GMSCameraPosition.camera(withLatitude: latitude!, longitude: longitude!, zoom: 15.0)
+            self.googleMapsView.delegate = self
+            self.googleMapsView.camera = camera
+            
+            
+            let marker = CSMarker()
+            marker.position = CLLocationCoordinate2DMake(latitude!, longitude!)
+            marker.title = self.address
+            marker.snippet = address
+            
+            self.userCreatedMarker = marker
+            self.destination = marker
+            displayMarker()
+        }else{
+            let alertController = UIAlertController(title: "載入失敗", message: "網路不穩定或該地址名稱不合法，請重試", preferredStyle: .alert)
+            
+            let defaultAction = UIAlertAction(title: "確定", style: .cancel, handler: nil)
+            alertController.addAction(defaultAction)
+            
+            present(alertController, animated: true, completion: nil)
+
+        }
+      
         
         
         
@@ -194,6 +233,145 @@ class DetailGoogleMapViewController:UIViewController,  GMSMapViewDelegate,  CLLo
                 print("No place selected")
             }
         })
+    }
+
+    @IBAction func drawRouteButton(_ sender: Any) {
+        
+        drawRoute()
+    }
+    
+    //set orgin & destination
+    func setupMarkerData(_ orginMarker:GMSMarker,_ destinationMarker:GMSMarker) -> [GMSMarker]{
+        
+        markersDirection = [orginMarker,destinationMarker]
+        return markersDirection
+        
+    }
+    func drawMarkers(markers:[GMSMarker]) {
+        for marker: GMSMarker in markers {
+            if marker.map == nil {
+                marker.map = googleMapsView
+            }
+        }
+    }
+    
+    //clean the route and marker on map
+    func cleanTheMap(){
+        
+        
+        //delete the current marker
+        if (self.userCreatedMarker != nil) {
+            self.userCreatedMarker?.map = nil
+            self.userCreatedMarker = nil
+        }
+        //clean the route
+        let points : String = ""
+        OperationQueue.main.addOperation {
+            
+            let path = GMSPath.init(fromEncodedPath: points)
+            self.snackLine.map = nil
+            self.snackLine = GMSPolyline(path: path)
+            self.snackLine.map = self.googleMapsView
+            
+        }
+    }
+    
+    func fetchCurrentPlace(){
+        placesClient.currentPlace(callback: { (placeLikelihoodList, error) -> Void in
+            if let error = error {
+                print("Pick Place error: \(error.localizedDescription)")
+                return
+            }
+            
+            if let placeLikelihoodList = placeLikelihoodList {
+                let place = placeLikelihoodList.likelihoods.first?.place
+                if let place = place {
+                    if self.flag{
+                        print("place.name：\(place.name)")
+                        print(place.coordinate.latitude)
+                        print(place.coordinate.longitude)
+                    }
+                    
+                    //self.setOrginLatitude(orginLatitude:place.coordinate.latitude )
+                    //self.setOrginLongitude(orginLongitude: place.coordinate.longitude)
+                    
+                    let marker = CSMarker()
+                    marker.position = CLLocationCoordinate2DMake(place.coordinate.latitude, place.coordinate.longitude)
+                    marker.title = place.name
+                    
+                    self.orgin = marker
+                    //self.drawRoute()
+                }
+            }
+        })
+        
+
+    }
+    
+    //draw route and markers
+    func drawRoute(){
+        
+        cleanTheMap()
+        //set up orgin & destination : latitude & longitude
+        let markers = setupMarkerData(self.orgin, self.destination)
+        drawMarkers(markers: markersDirection)
+        let orgin = markersDirection[0] as GMSMarker
+        let destination = markersDirection[1] as GMSMarker
+        let orginLatitude = orgin.position.latitude
+        let orginLongitude = orgin.position.longitude
+        let destinationLatitude = destination.position.latitude
+        let destinationLongitude = destination.position.longitude
+        
+        //set up googleMaps direction API key
+        let googleMapsDirectionApiKey = "AIzaSyCUpgytJP4Ilh5f9lihAp0QaInZG0pBSrc"
+        
+        //set up url for fetching json from googleMaps
+        let url = "https://maps.googleapis.com/maps/api/directions/json?origin=\(orginLatitude), \(orginLongitude)&destination=\(destinationLatitude), \(destinationLongitude)&mode=walking&key=" + googleMapsDirectionApiKey
+        
+        let actualURL = URL(string: url.urlEncoded())
+        
+        //fetch json from googleMaps
+        let session = URLSession.shared.dataTask(with: actualURL!) { (data:Data?, response:URLResponse?, error:Error?) in
+            if let data = data{
+                
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String:Any]
+                    print(json)
+                    
+                    // Extract distance and time
+                    let status = json?["status"] as? String
+                    let routes = json?["routes"] as? [[String:Any]]
+                    for route in routes!{
+                        let copyrights = route["copyrights"] as? String
+                        let overview_polyline = route["overview_polyline"] as? [String:Any]
+                        let points = overview_polyline?["points"] as? String
+                        
+                        //drawRoute
+                        OperationQueue.main.addOperation {
+                            
+                            let path = GMSPath.init(fromEncodedPath: points!)
+                            self.snackLine.map = nil
+                            self.snackLine = GMSPolyline(path: path)
+                            
+                            self.snackLine.strokeWidth = 5 // stroke width : 5
+                            self.snackLine.strokeColor = UIColor.blue //draw blue line
+                            self.snackLine.map = self.googleMapsView
+                        }
+                    }
+                    
+                    //print status
+                    if let status:String = status {
+                        print("status:\(status)")
+                    }
+                    
+                } catch {
+                    print(error)
+                }
+                
+            }
+        }
+        session.resume()
+        
     }
 
     

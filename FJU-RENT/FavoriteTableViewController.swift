@@ -9,7 +9,8 @@
 import UIKit
 import Firebase
 
-class FavoriteTableViewController: UITableViewController {
+class FavoriteTableViewController: UITableViewController,UIViewControllerPreviewingDelegate {
+    var flag = false
     
     var list = [Model]()
     var favoriteId :String = ""
@@ -20,16 +21,30 @@ class FavoriteTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        //cleanTableView()
-        loadFavorite()
-        
-        
+        //MARK: - 3d touch
+        if(traitCollection.forceTouchCapability == .available){
+            registerForPreviewing(with: self as! UIViewControllerPreviewingDelegate, sourceView: view)
+        }
+        self.loadFavorite()
+        self.refreshControl = UIRefreshControl()
+        self.refreshControl?.attributedTitle = NSAttributedString(string: "下拉以重新整理...")
+        self.refreshControl?.addTarget(self, action: #selector(refreshData(_:)), for: UIControlEvents.valueChanged)
+        self.tableView.addSubview(refreshControl!)
+    }
+
+    func refreshData(_ refreshControl: UIRefreshControl){
+        self.favoriteList.removeAll()
+        self.list.removeAll()
+        self.loadFavorite()
+        self.tableView.reloadData()
+        self.refreshControl?.endRefreshing()
     }
 
     func loadFavorite(){
+        if flag{
+           print("load..")
+        }
         
-        print("load..")
         let user = Auth.auth().currentUser
         if let user = user{
             let uid = user.uid
@@ -42,7 +57,7 @@ class FavoriteTableViewController: UITableViewController {
                 self.list.removeAll()
                 
                
-                //clean the map if no list
+                //MARK: - Clean The Map If No List
                 if snapshot.childrenCount == 0{
                     let alertController = UIAlertController(title: "暫無收藏項目", message: "", preferredStyle: .alert)
                     
@@ -74,14 +89,13 @@ class FavoriteTableViewController: UITableViewController {
                         let favoriteId = favorite.favoriteId!
                         let favoriteUid = favorite.favoriteUid!
                         
-                        // print("favotiteID:\(favoriteId)")
-                        //  print("favoriteUid:\(favoriteUid)")
-                        
                         databaseRef.child("location").child(favoriteUid).child(favoriteId).observeSingleEvent(of: .value, with: { (snapshot) in
                             
                             
                             let rentObject = snapshot.value as? [String: Any]
-                            print(rentObject)
+                            if self.flag{
+                                print(rentObject)
+                            }
                             let rentTitle = rentObject?["title"] as! String
                             let rentMoney = rentObject?["rent"] as! String
                             let rentPings = rentObject?["pings"] as! String
@@ -99,11 +113,14 @@ class FavoriteTableViewController: UITableViewController {
                             
                             var rentLikeCount = rentObject?["likeCount"] as! Int?
                             let timeStamp = rentObject?["timeStamp"] as! Int?
+                            
+                            let latitude = rentObject?["latitude"] as! Double?
+                            let longitude = rentObject?["longitude"] as! Double?
 
                             if rentLikeCount == nil{
                                 rentLikeCount = 0
                             }
-                            let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!)
+                            let rentList = Model(title: rentTitle, money: rentMoney , pings: rentPings ,imgPath: rentImg , id: rentId , uid: rentUid , uniString: rentUniString, address: rentAddress, genre: rentType, area: rentArea, likeCount: rentLikeCount!, timeStamp: timeStamp!, latitude: latitude!, longitude: longitude!)
                             
                             self.list.append(rentList)
                             
@@ -129,7 +146,10 @@ class FavoriteTableViewController: UITableViewController {
             
             
         }
-        print(list)
+        if flag{
+            print(list)
+        }
+        
     }
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -144,10 +164,7 @@ class FavoriteTableViewController: UITableViewController {
         cell.nameLabel?.text = rentList.title
         cell.addressLabel?.text = rentList.address
         cell.moneyLabel?.text = rentList.money
-        
-        
-        
-        //   print("\(rent.title):\(rent.imgPath)")
+
         
         if let rentImageUrl = rentList.imgPath{
             let url = URL(string: rentImageUrl)
@@ -179,8 +196,7 @@ class FavoriteTableViewController: UITableViewController {
                 let uid = user.uid
                 let ref = Database.database().reference()
                 ref.child("Favorite").child(uid).child(rentList.id!).setValue(nil)
-       
-                
+                ref.child("currentUser").child(uid).child(rentList.id!).child("favorite").setValue(nil)
             }
             self.tableView.beginUpdates()
             self.list.remove(at: indexPath.row)
@@ -200,10 +216,43 @@ class FavoriteTableViewController: UITableViewController {
                 let destinationController = segue.destination as! DetailTableViewController
                 destinationController.id = rentList.id!
                 destinationController.uid = rentList.uid!
-                //destinationController.uniqueString = rentList.uniString!
                 
             }
         }
+        if segue.identifier == "maps" {
+                let destinationController = segue.destination as! MutiMarkerViewController
+                destinationController.rentList = list
+
+        }
+    }
+    
+    // MARK: - Peek and Pop 3d touch
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        
+        guard let indexPath = tableView.indexPathForRow(at: location) else {
+            return nil
+        }
+        
+        guard let cell = tableView.cellForRow(at: indexPath) else {
+            return nil
+        }
+        
+        guard let DetailTableViewController = storyboard?.instantiateViewController(withIdentifier: "DetailTableViewController") as? DetailTableViewController else {
+            return nil
+        }
+        
+        let selectedFilteredRent = list[indexPath.row]
+        
+        DetailTableViewController.id = selectedFilteredRent.id!
+        DetailTableViewController.uid = selectedFilteredRent.uid!
+        DetailTableViewController.preferredContentSize = CGSize(width: 0.0, height: 450.0)
+        previewingContext.sourceRect = cell.frame
+        
+        return DetailTableViewController
+    }
+    
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+        show(viewControllerToCommit, sender: self)
     }
     
 }
