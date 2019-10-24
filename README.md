@@ -29,8 +29,10 @@
 *   Xcode 8.0+
 ## Installation
 1. ### Install [CocoaPods](https://cocoapods.org/)
+ˋˋˋˋ   
     $ sudo gem install cocoapods
     $ pod install
+ˋˋˋˋ
 2. Open the terminal cd into the project and pod install
 
 3. ### Put [FBSDKLoginKit](https://developers.facebook.com/docs/ios/) into Finder Documents
