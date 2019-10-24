@@ -28,18 +28,18 @@
 *   iOS 8.0+
 *   Xcode 8.0+
 ## Installation
-1. ### Install [CocoaPods](https://cocoapods.org/) 
+### Install [CocoaPods](https://cocoapods.org/) 
 
 ```bash
  $ sudo gem install cocoapods
  $ pod install
 ```
 
-2. Open the terminal cd into the project and pod install
 
-3. ### Put [FBSDKLoginKit](https://developers.facebook.com/docs/ios/) into Finder Documents
 
-4. ### Xcode Framework Search Path add /Users/Your_PC_name/Documents/FacebookSDK
+### Put [FBSDKLoginKit](https://developers.facebook.com/docs/ios/) into Finder Documents
+
+### Xcode Framework Search Path add /Users/Your_PC_name/Documents/FacebookSDK
 
 ## Server
   ### [Firebase](https://firebase.google.com/) is Google's mobile platform that helps you quickly develop high-quality apps and grow your business.
