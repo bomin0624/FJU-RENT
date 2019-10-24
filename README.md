@@ -20,7 +20,7 @@
 4.Reporting function：
 * The landlord and the tenant can report the bad comments and delete them after the background review.
 
-5.Search Map function：
+5.Map function：
 * The landlord can use the [Google Map](https://en.wikipedia.org/wiki/Google_Maps) function to locate and search around the rental house, and choose the starting point and the end point for the trip planning.
 * You can display the location of the house where the rental information is published on the map, and then click to enter the information page.
 
