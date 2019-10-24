@@ -8,19 +8,19 @@
 * Rent range Searching
 * House type searching 
 
-2.Tenant member function：
+2. Tenant member function：
 * Add to my favorite: Inspection and management the favorite you added
 * Comparing the houses which is more suitable for you
 * Leave a message in the comment area
 
-3.Landlord member function：
+3. Landlord member function：
 * Manage renting house listing information 
 * Answer the question in the comment area
 
-4.Reporting function：
+4. Reporting function：
 * The landlord and the tenant can report the bad comments and delete them after the background review.
 
-5.Map function：
+5. Map function：
 * The landlord can use the [Google Map](https://en.wikipedia.org/wiki/Google_Maps) function to locate and search around the rental house, and choose the starting point and the end point for the trip planning.
 * You can display the location of the house where the rental information is published on the map, and then click to enter the information page.
 
