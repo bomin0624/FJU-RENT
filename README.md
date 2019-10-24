@@ -30,8 +30,10 @@
 ## Installation
 1. ### Install [CocoaPods](https://cocoapods.org/) 
 
-> -  $ sudo gem install cocoapods
-> -  $ pod install
+```bash
+ $ sudo gem install cocoapods
+ $ pod install
+```
 
 2. Open the terminal cd into the project and pod install
 
