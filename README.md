@@ -1,11 +1,11 @@
 <div align=center><img width="180" height="180" src="https://imgur.com/8ZoF8Ai.png"/> </div>
 
-FJU-RENT is the app for FU-JEN University students to find the house they need
+FJU-RENT is the app for FU-JEN University students to find the house they need.
 
 ## Features
 
 1. Check housing information ：
-* Keyword Searching(by Address,Price,Area,Name)
+* Keyword Searching(by Address, Price, Area, Name)
 * Area Searching
 * Rent range Searching
 * House type searching 
@@ -32,11 +32,10 @@ FJU-RENT is the app for FU-JEN University students to find the house they need
 ## Installation
 ### Install [CocoaPods](https://cocoapods.org/) 
 
-```bash
+```
  $ sudo gem install cocoapods
  $ pod install
 ```
-
 
 
 ### Put [FBSDKLoginKit](https://developers.facebook.com/docs/ios/) into Finder Documents
