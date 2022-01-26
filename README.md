@@ -2,6 +2,8 @@
 
 FJU-RENT is the app for FU-JEN University students to find the house they need.
 
+### [Demo link](https://youtu.be/7UnNmD2uqXA)
+
 ## Features
 
 1. Check housing information ：
