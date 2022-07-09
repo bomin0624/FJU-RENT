@@ -28,7 +28,7 @@ FJU-RENT is the app for FU-JEN University students to find the house they need.
 * The landlord can use the [Google Map](https://en.wikipedia.org/wiki/Google_Maps) feature to locate and search around the rental house, and choose the starting point and the end point for the trip planning.
 * You can display the location of the house where the rental information is published on the map, and then click to enter the information page.
 
-## Requirment
+## Requirement
 *   iOS 8.0+
 *   Xcode 8.0+
 ## Installation
